@@ -1,0 +1,5 @@
+node_modules/
+free-bookly.zip
+docs/*.pdf
+vendor/
+.env
