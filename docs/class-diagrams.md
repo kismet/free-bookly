@@ -14,6 +14,10 @@ classDiagram
         +bool save()
         +bool delete()
         +static FB_Staff get_by_id(int id)
+        +static FB_Staff[] get_all()
+        +int[] get_service_ids()
+        +bool set_services(int[] service_ids)
+        +static FB_Staff[] get_by_service_id(int service_id)
     }
 
     class FB_Service {
@@ -26,6 +30,7 @@ classDiagram
         +bool save()
         +bool delete()
         +static FB_Service get_by_id(int id)
+        +static FB_Service[] get_all()
     }
 
     class FB_Customer {
@@ -36,7 +41,6 @@ classDiagram
         +int wp_user_id
         +__construct(array data)
         +bool save()
-        +bool delete()
         +static FB_Customer get_by_id(int id)
     }
 
@@ -50,11 +54,36 @@ classDiagram
         +string status
         +__construct(array data)
         +bool save()
-        +bool delete()
         +static FB_Appointment get_by_id(int id)
+    }
+
+    class Free_Bookly_Admin {
+        -string plugin_name
+        -string version
+        +add_plugin_admin_menu()
+        +handle_form_actions()
+        +display_dashboard()
+        +display_calendar()
+        +display_staff()
+        +display_services()
+        +display_modules()
+        +enqueue_styles(hook)
+        +enqueue_scripts(hook)
+    }
+
+    class FB_Ajax {
+        +get_services()
+        +get_staff()
+        +get_available_slots()
+        +save_appointment()
     }
 
     FB_Appointment --> FB_Staff : "Assigned To"
     FB_Appointment --> FB_Service : "Books"
     FB_Appointment --> FB_Customer : "Made By"
+    FB_Staff "1" -- "*" FB_Service : "Eroga (via wp_fb_staff_services)"
+    Free_Bookly_Admin ..> FB_Staff : "CRUD"
+    Free_Bookly_Admin ..> FB_Service : "CRUD"
+    FB_Ajax ..> FB_Service : "Queries"
+    FB_Ajax ..> FB_Staff : "Queries"
 ```

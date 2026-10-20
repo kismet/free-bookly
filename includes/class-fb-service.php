@@ -59,4 +59,45 @@ class FB_Service {
 
 		return null;
 	}
+
+	/**
+	 * Recupera tutti i servizi.
+	 *
+	 * @return FB_Service[]
+	 */
+	public static function get_all() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'fb_services';
+		$rows = $wpdb->get_results( "SELECT * FROM $table_name ORDER BY id ASC", ARRAY_A );
+
+		$services = array();
+		if ( $rows ) {
+			foreach ( $rows as $row ) {
+				$services[] = new self( $row );
+			}
+		}
+
+		return $services;
+	}
+
+	/**
+	 * Elimina il servizio e le relative relazioni con lo staff.
+	 *
+	 * @return bool
+	 */
+	public function delete() {
+		if ( ! $this->id ) {
+			return false;
+		}
+
+		global $wpdb;
+		$table_services = $wpdb->prefix . 'fb_services';
+		$table_staff_services = $wpdb->prefix . 'fb_staff_services';
+
+		// Rimuovi associazioni staff
+		$wpdb->delete( $table_staff_services, array( 'service_id' => $this->id ), array( '%d' ) );
+
+		// Elimina servizio
+		return $wpdb->delete( $table_services, array( 'id' => $this->id ), array( '%d' ) ) !== false;
+	}
 }

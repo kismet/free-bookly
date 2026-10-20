@@ -29,22 +29,50 @@ class Free_Bookly {
 	}
 
 	private function load_dependencies() {
-		// Richiede la classe per attivazione DB
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-free-bookly-activator.php';
-		// Richiede il module manager
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-module-manager.php';
+		$plugin_path = plugin_dir_path( dirname( __FILE__ ) );
+
+		// Core Activator & Module Manager
+		require_once $plugin_path . 'includes/class-free-bookly-activator.php';
+		require_once $plugin_path . 'includes/class-module-manager.php';
+
+		// Modelli
+		require_once $plugin_path . 'includes/class-fb-service.php';
+		require_once $plugin_path . 'includes/class-fb-staff.php';
+		require_once $plugin_path . 'includes/class-fb-customer.php';
+		require_once $plugin_path . 'includes/class-fb-appointment.php';
+
+		// Availability Engine & AJAX
+		require_once $plugin_path . 'includes/class-fb-availability.php';
+		require_once $plugin_path . 'includes/class-fb-ajax.php';
+
+		// Admin & Public Controllers
+		require_once $plugin_path . 'admin/class-free-bookly-admin.php';
+		require_once $plugin_path . 'public/class-free-bookly-public.php';
 	}
 
 	private function set_locale() {
-		// TODO: load_plugin_textdomain
+		load_plugin_textdomain(
+			'free-bookly',
+			false,
+			dirname( dirname( plugin_basename( __FILE__ ) ) ) . '/languages/'
+		);
 	}
 
 	private function define_admin_hooks() {
-		// TODO: Registrazione menu admin
+		$admin = new Free_Bookly_Admin( $this->get_plugin_name(), $this->get_version() );
+
+		add_action( 'admin_menu', array( $admin, 'add_plugin_admin_menu' ) );
+		add_action( 'admin_enqueue_scripts', array( $admin, 'enqueue_styles' ) );
+		add_action( 'admin_enqueue_scripts', array( $admin, 'enqueue_scripts' ) );
+		add_action( 'admin_init', array( $admin, 'handle_form_actions' ) );
 	}
 
 	private function define_public_hooks() {
-		// TODO: Registrazione shortcode e script JS frontend
+		$public = new Free_Bookly_Public( $this->get_plugin_name(), $this->get_version() );
+
+		add_action( 'wp_enqueue_scripts', array( $public, 'enqueue_styles' ) );
+		add_action( 'wp_enqueue_scripts', array( $public, 'enqueue_scripts' ) );
+		add_action( 'init', array( $public, 'register_shortcode' ) );
 	}
 
 	private function init_module_manager() {

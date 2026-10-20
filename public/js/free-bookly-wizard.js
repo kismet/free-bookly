@@ -4,11 +4,90 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	let bookingData = {
 		service_id: null,
+		service_title: '',
 		staff_id: null,
+		staff_name: 'Qualsiasi dipendente disponibile',
 		date: null,
 		time: null,
 		user: { name: '', email: '', phone: '' }
 	};
+
+	const serviceSelect = document.getElementById('fb-service-select');
+	const staffSelect = document.getElementById('fb-staff-select');
+
+	// Caricamento iniziale dei servizi
+	loadServices();
+
+	function loadServices() {
+		const data = new FormData();
+		data.append('action', 'fb_get_services');
+		data.append('nonce', fb_ajax.nonce);
+
+		fetch(fb_ajax.ajax_url, {
+			method: 'POST',
+			body: data
+		})
+		.then(res => res.json())
+		.then(response => {
+			if (response.success && response.data) {
+				serviceSelect.innerHTML = '<option value="">-- Seleziona un Servizio --</option>';
+				response.data.forEach(service => {
+					const opt = document.createElement('option');
+					opt.value = service.id;
+					opt.textContent = `${service.title} (${service.duration} min - €${service.price})`;
+					serviceSelect.appendChild(opt);
+				});
+			}
+		})
+		.catch(err => console.error('Errore caricamento servizi:', err));
+	}
+
+	// Al cambio servizio, ricarica lo staff abilitato
+	if (serviceSelect) {
+		serviceSelect.addEventListener('change', function() {
+			const sId = this.value;
+			bookingData.service_id = sId;
+			const selectedOption = this.options[this.selectedIndex];
+			bookingData.service_title = selectedOption ? selectedOption.textContent : '';
+
+			loadStaff(sId);
+		});
+	}
+
+	function loadStaff(serviceId) {
+		const data = new FormData();
+		data.append('action', 'fb_get_staff');
+		data.append('nonce', fb_ajax.nonce);
+		if (serviceId) {
+			data.append('service_id', serviceId);
+		}
+
+		fetch(fb_ajax.ajax_url, {
+			method: 'POST',
+			body: data
+		})
+		.then(res => res.json())
+		.then(response => {
+			if (response.success && response.data) {
+				staffSelect.innerHTML = '<option value="any">Qualsiasi dipendente disponibile</option>';
+				response.data.forEach(staff => {
+					const opt = document.createElement('option');
+					opt.value = staff.id;
+					opt.textContent = staff.full_name;
+					staffSelect.appendChild(opt);
+				});
+			}
+		})
+		.catch(err => console.error('Errore caricamento staff:', err));
+	}
+
+	if (staffSelect) {
+		staffSelect.addEventListener('change', function() {
+			bookingData.staff_id = this.value;
+			const opt = this.options[this.selectedIndex];
+			bookingData.staff_name = opt ? opt.textContent : '';
+		});
+	}
 
 	// Gestione navigazione Step
 	document.querySelectorAll('.fb-next-step, .fb-prev-step').forEach(btn => {
@@ -111,9 +190,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	function updateSummary() {
 		document.getElementById('fb-summary').innerHTML = `
-			<p><strong>Servizio:</strong> Selezionato</p>
-			<p><strong>Data:</strong> ${bookingData.date} alle ${bookingData.time}</p>
-			<p><strong>Cliente:</strong> ${bookingData.user.name} (${bookingData.user.email})</p>
+			<p><strong>Servizio:</strong> ${bookingData.service_title || 'Selezionato'}</p>
+			<p><strong>Staff:</strong> ${bookingData.staff_name || 'Qualsiasi disponibile'}</p>
+			<p><strong>Data:</strong> ${bookingData.date} alle ore ${bookingData.time}</p>
+			<p><strong>Cliente:</strong> ${bookingData.user.name} (${bookingData.user.email} - ${bookingData.user.phone})</p>
 		`;
 	}
 

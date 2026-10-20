@@ -3,11 +3,63 @@
 class FB_Ajax {
 
 	public function __construct() {
+		add_action( 'wp_ajax_fb_get_services', array( $this, 'get_services' ) );
+		add_action( 'wp_ajax_nopriv_fb_get_services', array( $this, 'get_services' ) );
+
+		add_action( 'wp_ajax_fb_get_staff', array( $this, 'get_staff' ) );
+		add_action( 'wp_ajax_nopriv_fb_get_staff', array( $this, 'get_staff' ) );
+
 		add_action( 'wp_ajax_fb_get_available_slots', array( $this, 'get_available_slots' ) );
 		add_action( 'wp_ajax_nopriv_fb_get_available_slots', array( $this, 'get_available_slots' ) );
 
 		add_action( 'wp_ajax_fb_save_appointment', array( $this, 'save_appointment' ) );
 		add_action( 'wp_ajax_nopriv_fb_save_appointment', array( $this, 'save_appointment' ) );
+	}
+
+	public function get_services() {
+		check_ajax_referer( 'fb_wizard_nonce', 'nonce' );
+
+		require_once dirname( __FILE__ ) . '/class-fb-service.php';
+		$services = FB_Service::get_all();
+
+		$data = array();
+		foreach ( $services as $service ) {
+			$data[] = array(
+				'id'       => $service->id,
+				'title'    => $service->title,
+				'duration' => $service->duration,
+				'price'    => number_format( $service->price, 2, ',', '.' ),
+			);
+		}
+
+		wp_send_json_success( $data );
+	}
+
+	public function get_staff() {
+		check_ajax_referer( 'fb_wizard_nonce', 'nonce' );
+
+		require_once dirname( __FILE__ ) . '/class-fb-staff.php';
+		$service_id = isset( $_POST['service_id'] ) ? absint( $_POST['service_id'] ) : 0;
+
+		if ( $service_id > 0 ) {
+			$staff_list = FB_Staff::get_by_service_id( $service_id );
+			// Se nessuno staff è specificamente assegnato al servizio, fallback su tutto lo staff
+			if ( empty( $staff_list ) ) {
+				$staff_list = FB_Staff::get_all();
+			}
+		} else {
+			$staff_list = FB_Staff::get_all();
+		}
+
+		$data = array();
+		foreach ( $staff_list as $staff ) {
+			$data[] = array(
+				'id'        => $staff->id,
+				'full_name' => $staff->full_name,
+			);
+		}
+
+		wp_send_json_success( $data );
 	}
 
 	public function get_available_slots() {
