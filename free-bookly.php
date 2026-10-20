@@ -24,6 +24,15 @@ define( 'FREE_BOOKLY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FREE_BOOKLY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 /**
+ * Il codice che viene eseguito durante l'attivazione del plugin.
+ */
+function activate_free_bookly() {
+	require_once plugin_dir_path( __FILE__ ) . 'includes/class-free-bookly-activator.php';
+	Free_Bookly_Activator::activate();
+}
+register_activation_hook( __FILE__, 'activate_free_bookly' );
+
+/**
  * Il codice che avvia e dirige le operazioni principali del plugin.
  */
 require plugin_dir_path( __FILE__ ) . 'includes/class-free-bookly.php';

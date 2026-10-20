@@ -1,0 +1,134 @@
+/**
+ * Free Bookly Admin Styles
+ */
+
+.fb-admin-wrap {
+	margin-top: 20px;
+}
+
+.fb-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	padding: 20px 24px;
+	margin-bottom: 20px;
+}
+
+.fb-card h2 {
+	margin-top: 0;
+	margin-bottom: 16px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #f0f0f1;
+	font-size: 1.25rem;
+	color: #1d2327;
+}
+
+.fb-layout-columns {
+	display: flex;
+	gap: 24px;
+	align-items: flex-start;
+}
+
+.fb-col-form {
+	flex: 0 0 380px;
+}
+
+.fb-col-table {
+	flex: 1;
+	min-width: 0;
+}
+
+@media screen and (max-width: 960px) {
+	.fb-layout-columns {
+		flex-direction: column;
+	}
+	.fb-col-form {
+		flex: 1 1 100%;
+		width: 100%;
+	}
+}
+
+.fb-form-group {
+	margin-bottom: 16px;
+}
+
+.fb-form-group label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 6px;
+	color: #1d2327;
+}
+
+.fb-form-group input[type="text"],
+.fb-form-group input[type="email"],
+.fb-form-group input[type="tel"],
+.fb-form-group input[type="number"],
+.fb-form-group select {
+	width: 100%;
+	max-width: 100%;
+	padding: 8px 12px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.fb-checkbox-list {
+	max-height: 180px;
+	overflow-y: auto;
+	border: 1px solid #dcdcde;
+	background: #f6f7f7;
+	border-radius: 4px;
+	padding: 10px 14px;
+}
+
+.fb-checkbox-item {
+	display: flex;
+	align-items: center;
+	margin-bottom: 8px;
+	font-size: 13px;
+}
+
+.fb-checkbox-item:last-child {
+	margin-bottom: 0;
+}
+
+.fb-checkbox-item input[type="checkbox"] {
+	margin-right: 8px;
+}
+
+.fb-badge {
+	display: inline-block;
+	padding: 3px 8px;
+	font-size: 11px;
+	font-weight: 600;
+	border-radius: 12px;
+	background: #e0f2fe;
+	color: #0369a1;
+	margin-right: 4px;
+	margin-bottom: 4px;
+}
+
+.fb-badge-secondary {
+	background: #f3f4f6;
+	color: #4b5563;
+}
+
+.fb-table-actions a {
+	text-decoration: none;
+	font-size: 13px;
+	margin-right: 8px;
+}
+
+.fb-table-actions a.delete-link {
+	color: #b32d2e;
+}
+
+.fb-table-actions a.delete-link:hover {
+	color: #e00;
+}
+
+.fb-btn-cancel {
+	margin-left: 8px;
+	vertical-align: middle;
+}

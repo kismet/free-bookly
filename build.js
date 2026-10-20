@@ -36,6 +36,6 @@ const ignoreList = [
 archive.glob('**/*', {
   cwd: __dirname,
   ignore: ignoreList
-});
+}, { prefix: 'free-bookly' });
 
 archive.finalize();

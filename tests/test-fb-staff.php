@@ -52,4 +52,38 @@ class Test_FB_Staff extends WP_UnitTestCase {
 		$deleted_staff = FB_Staff::get_by_id( $id );
 		$this->assertNull( $deleted_staff );
 	}
+
+	public function test_staff_get_all() {
+		$staff1 = new FB_Staff( array( 'full_name' => 'Staff Uno' ) );
+		$staff1->save();
+		$staff2 = new FB_Staff( array( 'full_name' => 'Staff Due' ) );
+		$staff2->save();
+
+		$all = FB_Staff::get_all();
+		$this->assertGreaterThanOrEqual( 2, count( $all ) );
+	}
+
+	public function test_staff_services_association() {
+		require_once dirname( dirname( __FILE__ ) ) . '/includes/class-fb-service.php';
+		$service1 = new FB_Service( array( 'title' => 'Taglio', 'duration' => 30 ) );
+		$service1->save();
+		$service2 = new FB_Service( array( 'title' => 'Barba', 'duration' => 20 ) );
+		$service2->save();
+
+		$staff = new FB_Staff( array( 'full_name' => 'Barbiere Mario' ) );
+		$staff->save();
+
+		// Associa i servizi
+		$staff->set_services( array( $service1->id, $service2->id ) );
+
+		$assigned_ids = $staff->get_service_ids();
+		$this->assertCount( 2, $assigned_ids );
+		$this->assertContains( (int) $service1->id, $assigned_ids );
+		$this->assertContains( (int) $service2->id, $assigned_ids );
+
+		// Verifica filtro staff per servizio
+		$staff_for_service = FB_Staff::get_by_service_id( $service1->id );
+		$this->assertNotEmpty( $staff_for_service );
+		$this->assertEquals( 'Barbiere Mario', $staff_for_service[0]->full_name );
+	}
 }
