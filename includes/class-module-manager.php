@@ -28,6 +28,24 @@ class Free_Bookly_Module_Manager {
 	}
 
 	/**
+	 * Ritorna l'elenco degli ID dei moduli attualmente attivi.
+	 *
+	 * @return array
+	 */
+	public function get_active_modules() {
+		return get_option( 'free_bookly_active_modules', array() );
+	}
+
+	/**
+	 * Imposta l'elenco dei moduli attivi.
+	 *
+	 * @param array $modules
+	 */
+	public function set_active_modules( array $modules ) {
+		update_option( 'free_bookly_active_modules', array_values( array_unique( $modules ) ) );
+	}
+
+	/**
 	 * Controlla se un modulo è attivo.
 	 */
 	public function is_active( $id ) {

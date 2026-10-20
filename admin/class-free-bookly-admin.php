@@ -198,6 +198,56 @@ class Free_Bookly_Admin {
 			wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-staff&message=deleted' ) );
 			exit;
 		}
+
+		// 5. Gestione Cambio Stato Appuntamento (Approva / Annulla)
+		if ( isset( $_GET['page'] ) && 'free-bookly-calendar' === $_GET['page'] && isset( $_GET['action'] ) && in_array( $_GET['action'], array( 'approve', 'cancel' ), true ) && isset( $_GET['id'] ) ) {
+			$app_id = absint( $_GET['id'] );
+			check_admin_referer( 'fb_status_app_' . $app_id );
+
+			$new_status = 'approve' === $_GET['action'] ? 'approved' : 'cancelled';
+			global $wpdb;
+			$wpdb->update(
+				$wpdb->prefix . 'fb_appointments',
+				array( 'status' => $new_status ),
+				array( 'id' => $app_id ),
+				array( '%s' ),
+				array( '%d' )
+			);
+
+			wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-calendar&message=' . ( 'approve' === $_GET['action'] ? 'approved' : 'cancelled' ) ) );
+			exit;
+		}
+
+		// 6. Gestione Eliminazione Appuntamento
+		if ( isset( $_GET['page'] ) && 'free-bookly-calendar' === $_GET['page'] && isset( $_GET['action'] ) && 'delete' === $_GET['action'] && isset( $_GET['id'] ) ) {
+			$app_id = absint( $_GET['id'] );
+			check_admin_referer( 'fb_delete_app_' . $app_id );
+
+			global $wpdb;
+			$wpdb->delete(
+				$wpdb->prefix . 'fb_appointments',
+				array( 'id' => $app_id ),
+				array( '%d' )
+			);
+
+			wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-calendar&message=deleted' ) );
+			exit;
+		}
+
+		// 7. Gestione Salvataggio Moduli Attivi
+		if ( isset( $_POST['action'] ) && 'fb_save_modules' === $_POST['action'] ) {
+			check_admin_referer( 'fb_save_modules_action', 'fb_modules_nonce' );
+
+			$modules = isset( $_POST['active_modules'] ) && is_array( $_POST['active_modules'] )
+				? array_map( 'sanitize_key', $_POST['active_modules'] )
+				: array();
+
+			$module_manager = new Free_Bookly_Module_Manager();
+			$module_manager->set_active_modules( $modules );
+
+			wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-modules&message=saved' ) );
+			exit;
+		}
 	}
 
 	public function display_dashboard() {
@@ -205,7 +255,7 @@ class Free_Bookly_Admin {
 	}
 
 	public function display_calendar() {
-		echo '<div class="wrap"><h1>Calendario Appuntamenti</h1><p>Vista calendario per visualizzare e filtrare gli appuntamenti.</p></div>';
+		require_once plugin_dir_path( __FILE__ ) . 'partials/free-bookly-admin-calendar.php';
 	}
 
 	public function display_staff() {
@@ -217,6 +267,6 @@ class Free_Bookly_Admin {
 	}
 
 	public function display_modules() {
-		echo '<div class="wrap"><h1>Moduli Extra (Add-ons)</h1><p>Abilita o disabilita moduli per espandere le funzionalità senza pesare sulle prestazioni.</p></div>';
+		require_once plugin_dir_path( __FILE__ ) . 'partials/free-bookly-admin-modules.php';
 	}
 }

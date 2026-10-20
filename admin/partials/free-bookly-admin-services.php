@@ -83,13 +83,13 @@ $error   = isset( $_GET['error'] ) ? sanitize_text_field( $_GET['error'] ) : '';
 		<div class="fb-col-table">
 			<div class="fb-card">
 				<h2>Elenco Servizi (<?php echo count( $services ); ?>)</h2>
-				<table class="wp-list-table widefat fixed striped">
+				<table class="wp-list-table widefat striped fb-admin-table">
 					<thead>
 						<tr>
 							<th style="width: 50px;">ID</th>
 							<th>Titolo</th>
-							<th style="width: 120px;">Durata</th>
-							<th style="width: 110px;">Prezzo</th>
+							<th style="width: 100px;">Durata</th>
+							<th style="width: 100px;">Prezzo</th>
 							<th style="width: 90px;">Capacità</th>
 							<th style="width: 140px;">Azioni</th>
 						</tr>

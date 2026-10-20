@@ -112,7 +112,7 @@ $wp_users = get_users( array( 'orderby' => 'display_name', 'order' => 'ASC' ) );
 		<div class="fb-col-table">
 			<div class="fb-card">
 				<h2>Membri del Team (<?php echo count( $staff_list ); ?>)</h2>
-				<table class="wp-list-table widefat fixed striped">
+				<table class="wp-list-table widefat striped fb-admin-table">
 					<thead>
 						<tr>
 							<th style="width: 50px;">ID</th>
