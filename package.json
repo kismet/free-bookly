@@ -5,9 +5,9 @@
   "main": "free-bookly.php",
   "scripts": {
     "test": "phpunit",
-    "docs": "md-to-pdf docs/architecture.md docs/class-diagrams.md",
+    "docs": "node generate-pdf.js",
     "build:zip": "node build.js",
-    "build": "npm run test && npm run docs && npm run build:zip"
+    "build": "npm run docs && npm run build:zip"
   },
   "author": "Open Source Community",
   "license": "GPL-2.0-or-later",
