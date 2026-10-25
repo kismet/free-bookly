@@ -22,12 +22,15 @@ archive.pipe(output);
 const ignoreList = [
   'node_modules/**',
   'tests/**',
-  'docs/**',
+  'docs/*.md',
+  'docs/test-report.pdf',
   '.git/**',
   '.gitignore',
   'package.json',
   'package-lock.json',
   'build.js',
+  'generate-pdf.js',
+  'test-e2e.js',
   'phpunit.xml.dist',
   'free-bookly.zip',
   'specifiche-plugin-booking.md'
