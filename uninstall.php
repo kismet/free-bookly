@@ -16,6 +16,8 @@ global $wpdb;
 // 1. Rimuovi le tabelle custom nell'ordine corretto
 $tables = array(
 	$wpdb->prefix . 'fb_appointments',
+	$wpdb->prefix . 'fb_staff_breaks',
+	$wpdb->prefix . 'fb_staff_schedule',
 	$wpdb->prefix . 'fb_customers',
 	$wpdb->prefix . 'fb_staff_services',
 	$wpdb->prefix . 'fb_staff',

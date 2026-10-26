@@ -78,12 +78,23 @@ classDiagram
         +save_appointment()
     }
 
+    class FB_Staff_Schedule {
+        +static array get_day_names()
+        +static array get_schedule(int staff_id)
+        +static array get_day_schedule(int staff_id, int day_index)
+        +static bool save_schedule(int staff_id, array days_data)
+        +static void delete_by_staff(int staff_id)
+    }
+
     FB_Appointment --> FB_Staff : "Assigned To"
     FB_Appointment --> FB_Service : "Books"
     FB_Appointment --> FB_Customer : "Made By"
     FB_Staff "1" -- "*" FB_Service : "Eroga (via wp_fb_staff_services)"
+    FB_Staff "1" -- "7" FB_Staff_Schedule : "Configura orari e pause"
     Free_Bookly_Admin ..> FB_Staff : "CRUD"
+    Free_Bookly_Admin ..> FB_Staff_Schedule : "CRUD"
     Free_Bookly_Admin ..> FB_Service : "CRUD"
     FB_Ajax ..> FB_Service : "Queries"
     FB_Ajax ..> FB_Staff : "Queries"
+    FB_Ajax ..> FB_Staff_Schedule : "Queries"
 ```

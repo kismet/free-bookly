@@ -420,7 +420,17 @@ const userGuideHtml = `
   </div>
 
   <div class="step-box">
-    <div class="step-title">Passo 3: Pubblicare il Form di Prenotazione sul Frontend</div>
+    <div class="step-title">Passo 3: Orari di Lavoro e Pause Personalizzati (Staff Schedules &amp; Breaks)</div>
+    <p>Dalla tabella di <strong>Free Bookly &gt; Staff</strong>, clicca sul pulsante <strong>Orari &amp; Pause</strong> accanto a ciascun collaboratore:</p>
+    <ul>
+      <li><strong>Settimana Lavorativa (7 giorni):</strong> Attiva o disattiva i giorni di riposo con l'apposito interruttore (es. Sabato e Domenica non lavorativi).</li>
+      <li><strong>Orario di Turno:</strong> Imposta per ogni giorno l'orario di inizio e fine turno (es. <em>09:00 - 18:00</em>).</li>
+      <li><strong>Pause e Intervalli:</strong> Configura la fascia oraria di pausa (es. pausa pranzo <em>13:00 - 14:00</em>). Il motore di disponibilità escluderà automaticamente gli slot che intersecano la pausa e riprenderà immediatamente al termine dell'intervallo.</li>
+    </ul>
+  </div>
+
+  <div class="step-box">
+    <div class="step-title">Passo 4: Pubblicare il Form di Prenotazione sul Frontend</div>
     <p>Crea o modifica una pagina qualsiasi in WordPress (es. <em>"Prenota Ora"</em>) e incolla semplicemente il seguente shortcode:</p>
     <p style="text-align: center;"><code style="font-size: 15px; font-weight: bold; padding: 6px 14px;">[free_bookly]</code></p>
     <p>Pubblica la pagina. I clienti troveranno un wizard reattivo a 4 step: selezione servizio/staff &rarr; data e orario libero &rarr; dati personali &rarr; riepilogo e conferma immediata.</p>

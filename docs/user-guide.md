@@ -56,7 +56,16 @@ L'installazione su un sito WordPress in produzione o staging richiede meno di un
 3. Clicca su **Salva Membro Staff**.
 4. *Nota:* Quando un cliente sul sito sceglie un servizio, il sistema mostrerà automaticamente solo i collaboratori abilitati a quel servizio.
 
-### Passo 3: Pubblicare il Form di Prenotazione sul Sito
+### Passo 3: Configurare Orari di Lavoro e Pause (Staff Schedules & Breaks)
+1. Nella tabella di **Free Bookly > Staff**, clicca sul pulsante **Orari & Pause** accanto al membro del team da configurare.
+2. Per ciascun giorno della settimana (Lunedì &rarr; Domenica):
+   * **Stato Lavorativo:** Seleziona se il collaboratore è *In Servizio* o in *Giorno di Riposo*.
+   * **Orario di Turno:** Imposta l'orario di inizio e fine giornata (es. *09:00* - *18:00*).
+   * **Pausa Pranzo / Intervallo:** Specifica la fascia oraria di pausa (es. dalle *13:00* alle *14:00*).
+3. Clicca su **Salva Orari e Pause**.
+4. Il motore di disponibilità frontend escluderà automaticamente gli orari di pausa e i giorni di riposo, riallineando gli slot disponibili non appena termina l'intervallo.
+
+### Passo 4: Pubblicare il Form di Prenotazione sul Sito
 1. Nel menu di WordPress, vai su **Pagine > Aggiungi nuova pagina**.
 2. Assegna un titolo alla pagina (es. *Prenota Online* oppure *Prenotazioni*).
 3. Inserisci lo shortcode:

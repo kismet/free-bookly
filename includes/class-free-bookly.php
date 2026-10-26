@@ -38,6 +38,7 @@ class Free_Bookly {
 		// Modelli
 		require_once $plugin_path . 'includes/class-fb-service.php';
 		require_once $plugin_path . 'includes/class-fb-staff.php';
+		require_once $plugin_path . 'includes/class-fb-staff-schedule.php';
 		require_once $plugin_path . 'includes/class-fb-customer.php';
 		require_once $plugin_path . 'includes/class-fb-appointment.php';
 
@@ -87,6 +88,17 @@ class Free_Bookly {
 	public function run() {
 		// Aggancia l'attivazione
 		register_activation_hook( dirname( dirname( __FILE__ ) ) . '/free-bookly.php', array( 'Free_Bookly_Activator', 'activate' ) );
+
+		// Auto-migrazione database su aggiornamenti dello schema
+		add_action( 'admin_init', array( $this, 'maybe_update_db' ) );
+	}
+
+	public function maybe_update_db() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'fb_staff_schedule';
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) !== $table_name ) {
+			Free_Bookly_Activator::activate();
+		}
 	}
 
 	public function get_plugin_name() {

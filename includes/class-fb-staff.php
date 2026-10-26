@@ -173,7 +173,7 @@ class FB_Staff {
 	}
 
 	/**
-	 * Elimina il membro dello staff e le sue associazioni ai servizi.
+	 * Elimina il membro dello staff e le sue associazioni ai servizi e orari.
 	 */
 	public function delete() {
 		if ( ! $this->id ) {
@@ -184,6 +184,11 @@ class FB_Staff {
 		$table_staff = $wpdb->prefix . 'fb_staff';
 		$table_staff_services = $wpdb->prefix . 'fb_staff_services';
 		
+		// Rimuovi orari e pause
+		if ( class_exists( 'FB_Staff_Schedule' ) ) {
+			FB_Staff_Schedule::delete_by_staff( $this->id );
+		}
+
 		// Rimuovi associazioni servizi
 		$wpdb->delete( $table_staff_services, array( 'staff_id' => $this->id ), array( '%d' ) );
 

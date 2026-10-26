@@ -248,6 +248,42 @@ class Free_Bookly_Admin {
 			wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-modules&message=saved' ) );
 			exit;
 		}
+
+		// 8. Gestione Salvataggio Orari e Pause Staff
+		if ( isset( $_POST['action'] ) && 'fb_save_staff_schedule' === $_POST['action'] ) {
+			check_admin_referer( 'fb_save_schedule_action', 'fb_schedule_nonce' );
+
+			$staff_id     = isset( $_POST['staff_id'] ) ? absint( $_POST['staff_id'] ) : 0;
+			$raw_schedule = isset( $_POST['schedule'] ) && is_array( $_POST['schedule'] ) ? $_POST['schedule'] : array();
+
+			$formatted_schedule = array();
+			for ( $day = 1; $day <= 7; $day++ ) {
+				$day_in     = isset( $raw_schedule[ $day ] ) ? $raw_schedule[ $day ] : array();
+				$is_working = ! empty( $day_in['is_working_day'] ) ? 1 : 0;
+				$start_time = ! empty( $day_in['start_time'] ) ? sanitize_text_field( $day_in['start_time'] ) : '09:00';
+				$end_time   = ! empty( $day_in['end_time'] ) ? sanitize_text_field( $day_in['end_time'] ) : '18:00';
+
+				$breaks = array();
+				if ( ! empty( $day_in['break_start'] ) && ! empty( $day_in['break_end'] ) ) {
+					$breaks[] = array(
+						'start_time' => sanitize_text_field( $day_in['break_start'] ),
+						'end_time'   => sanitize_text_field( $day_in['break_end'] ),
+					);
+				}
+
+				$formatted_schedule[ $day ] = array(
+					'is_working_day' => $is_working,
+					'start_time'     => $start_time,
+					'end_time'       => $end_time,
+					'breaks'         => $breaks,
+				);
+			}
+
+			FB_Staff_Schedule::save_schedule( $staff_id, $formatted_schedule );
+
+			wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-staff&view=schedule&staff_id=' . $staff_id . '&message=schedule_saved' ) );
+			exit;
+		}
 	}
 
 	public function display_dashboard() {
