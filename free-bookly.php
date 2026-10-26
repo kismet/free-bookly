@@ -1,10 +1,11 @@
 <?php
 /**
  * Plugin Name:       Free Bookly
- * Plugin URI:        https://github.com/example/free-bookly
+ * Plugin URI:        https://github.com/stefanolenzi/free-bookly
  * Description:       L'alternativa Open Source a Bookly per la gestione delle prenotazioni. Completamente modulare e gratuita.
- * Version:           1.0.0
- * Author:            Open Source Community
+ * Version:           1.1.0-build.766e21a
+ * Author:            Stefano Lenzi
+ * Author URI:        https://github.com/stefanolenzi
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       free-bookly
@@ -19,7 +20,10 @@ if ( ! defined( 'WPINC' ) ) {
 /**
  * Attualmente definita la versione del plugin.
  */
-define( 'FREE_BOOKLY_VERSION', '1.0.0' );
+define( 'FREE_BOOKLY_VERSION', '1.1.0' );
+define( 'FREE_BOOKLY_BUILD', '766e21a' );
+define( 'FREE_BOOKLY_VERSION_FULL', '1.1.0-build.766e21a' );
+define( 'FREE_BOOKLY_AUTHOR', 'Stefano Lenzi' );
 define( 'FREE_BOOKLY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FREE_BOOKLY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
