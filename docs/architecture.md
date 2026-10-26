@@ -1,5 +1,9 @@
 # Architettura "Free Bookly"
 
+**Autore:** Stefano Lenzi  
+**Licenza:** GPL-2.0+  
+**Versione:** 1.1.0 (Open Source)
+
 Questo documento descrive l'architettura base del plugin, progettata per essere modulare, performante e testabile.
 
 ## 1. Architettura a Moduli (Core + Extensions)

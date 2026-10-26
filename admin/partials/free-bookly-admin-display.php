@@ -109,4 +109,13 @@ $recent_appointments = $wpdb->get_results(
 		<p>Inserisci questo shortcode in qualunque pagina o articolo di WordPress per mostrare il booking wizard ai tuoi clienti:</p>
 		<p><code style="font-size: 16px; padding: 6px 12px; background: #f1f5f9; border-radius: 4px;">[free_bookly]</code></p>
 	</div>
+
+	<div style="margin-top: 24px; padding: 12px 16px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; color: #64748b; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+		<div>
+			<strong>Free Bookly</strong> &bull; Versione: <code><?php echo esc_html( defined( 'FREE_BOOKLY_VERSION_FULL' ) ? FREE_BOOKLY_VERSION_FULL : FREE_BOOKLY_VERSION ); ?></code> (Git Commit: <code><?php echo esc_html( defined( 'FREE_BOOKLY_BUILD' ) ? FREE_BOOKLY_BUILD : 'dev' ); ?></code>)
+		</div>
+		<div>
+			Autore: <strong><?php echo esc_html( defined( 'FREE_BOOKLY_AUTHOR' ) ? FREE_BOOKLY_AUTHOR : 'Stefano Lenzi' ); ?></strong> &bull; Rilasciato sotto licenza <strong>GPL-2.0+</strong>
+		</div>
+	</div>
 </div>

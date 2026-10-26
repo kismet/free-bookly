@@ -1,15 +1,16 @@
 {
   "name": "free-bookly",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "L'alternativa Open Source a Bookly per la gestione delle prenotazioni.",
   "main": "free-bookly.php",
   "scripts": {
     "test": "phpunit",
+    "version:stamp": "node scripts/version.js",
     "docs": "node generate-pdf.js",
     "build:zip": "node build.js",
-    "build": "npm run docs && npm run build:zip"
+    "build": "npm run version:stamp && npm run docs && npm run build:zip"
   },
-  "author": "Open Source Community",
+  "author": "Stefano Lenzi",
   "license": "GPL-2.0-or-later",
   "devDependencies": {
     "archiver": "^5.3.1",

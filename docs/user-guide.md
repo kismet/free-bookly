@@ -1,5 +1,9 @@
 # Guida Utente e Manuale di Installazione: Free Bookly
 
+**Autore:** Stefano Lenzi  
+**Licenza:** GPL-2.0+  
+**Versione:** 1.1.0 (Open Source)
+
 Benvenuto in **Free Bookly**, l'alternativa Open Source e modulare a Bookly Pro per la gestione professionale delle prenotazioni e degli appuntamenti su WordPress.
 
 ---
