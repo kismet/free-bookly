@@ -112,8 +112,12 @@ class FB_Ajax {
 
 		// 3. Salva Appuntamento
 		require_once dirname( __FILE__ ) . '/class-fb-appointment.php';
+		$assigned_staff_id = ( ! empty( $payload['staff_id'] ) && 'any' !== (string) $payload['staff_id'] )
+			? absint( $payload['staff_id'] )
+			: $this->find_available_staff( $payload['service_id'], $payload['date'], $payload['time'] );
+
 		$appointment = new FB_Appointment( array(
-			'staff_id'    => $payload['staff_id'] ? $payload['staff_id'] : 1, // Fallback
+			'staff_id'    => $assigned_staff_id,
 			'service_id'  => $payload['service_id'],
 			'customer_id' => $customer->id,
 			'start_date'  => $start_date,
@@ -126,6 +130,28 @@ class FB_Ajax {
 		} else {
 			wp_send_json_error( 'Errore durante il salvataggio.' );
 		}
+	}
+
+	/**
+	 * Seleziona il primo membro dello staff disponibile per data e ora.
+	 */
+	private function find_available_staff( $service_id, $date, $time ) {
+		require_once dirname( __FILE__ ) . '/class-fb-staff.php';
+		require_once dirname( __FILE__ ) . '/class-fb-availability.php';
+		$staff_list = FB_Staff::get_by_service_id( $service_id );
+		if ( empty( $staff_list ) ) {
+			$staff_list = FB_Staff::get_all();
+		}
+
+		$checker = new FB_Availability();
+		foreach ( $staff_list as $staff ) {
+			$slots = $checker->get_available_slots( $service_id, $staff->id, $date );
+			if ( in_array( $time, $slots, true ) ) {
+				return $staff->id;
+			}
+		}
+
+		return ! empty( $staff_list[0] ) ? $staff_list[0]->id : 1;
 	}
 }
 

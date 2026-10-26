@@ -79,6 +79,29 @@ class Free_Bookly_Activator {
 			KEY customer_id (customer_id)
 		) $charset_collate;";
 
+		// Staff Schedule Table (1 per day of the week, Monday=1 to Sunday=7)
+		$schema[] = "CREATE TABLE {$prefix}fb_staff_schedule (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			staff_id bigint(20) NOT NULL,
+			day_index tinyint(4) NOT NULL,
+			start_time time NOT NULL DEFAULT '09:00:00',
+			end_time time NOT NULL DEFAULT '18:00:00',
+			is_working_day tinyint(1) NOT NULL DEFAULT 1,
+			PRIMARY KEY  (id),
+			UNIQUE KEY staff_day (staff_id, day_index)
+		) $charset_collate;";
+
+		// Staff Breaks Table
+		$schema[] = "CREATE TABLE {$prefix}fb_staff_breaks (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			staff_id bigint(20) NOT NULL,
+			day_index tinyint(4) NOT NULL,
+			start_time time NOT NULL,
+			end_time time NOT NULL,
+			PRIMARY KEY  (id),
+			KEY staff_day (staff_id, day_index)
+		) $charset_collate;";
+
 		return $schema;
 	}
 }

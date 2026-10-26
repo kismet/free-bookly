@@ -7,6 +7,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Se richiesta la vista orari e pause per un collaboratore
+if ( isset( $_GET['view'] ) && 'schedule' === $_GET['view'] && ! empty( $_GET['staff_id'] ) ) {
+	require_once plugin_dir_path( __FILE__ ) . 'free-bookly-admin-staff-schedule.php';
+	return;
+}
+
 $edit_id = isset( $_GET['edit'] ) ? absint( $_GET['edit'] ) : 0;
 $staff_to_edit = $edit_id ? FB_Staff::get_by_id( $edit_id ) : null;
 $staff_list = FB_Staff::get_all();
@@ -120,7 +126,7 @@ $wp_users = get_users( array( 'orderby' => 'display_name', 'order' => 'ASC' ) );
 							<th>Contatti</th>
 							<th>Utente WP</th>
 							<th>Servizi Erogati</th>
-							<th style="width: 140px;">Azioni</th>
+							<th style="width: 220px;">Azioni</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -176,6 +182,7 @@ $wp_users = get_users( array( 'orderby' => 'display_name', 'order' => 'ASC' ) );
 										<?php endif; ?>
 									</td>
 									<td class="fb-table-actions">
+										<a href="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-staff&view=schedule&staff_id=' . $staff->id ) ); ?>" class="button button-small" style="color: #0284c7;">Orari &amp; Pause</a>
 										<a href="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-staff&edit=' . $staff->id ) ); ?>" class="button button-small">Modifica</a>
 										<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=free-bookly-staff&action=delete&id=' . $staff->id ), 'fb_delete_staff_' . $staff->id ) ); ?>" 
 										   class="button button-small delete-link" 

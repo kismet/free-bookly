@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Fetch orari disponibili (AJAX)
 	document.getElementById('fb-date-picker').addEventListener('change', function() {
 		bookingData.date = this.value;
-		document.getElementById('fb-time-slots').innerHTML = 'Caricamento orari...';
+		document.getElementById('fb-time-slots').innerHTML = '<p class="fb-no-slots">Caricamento orari...</p>';
 
 		const data = new FormData();
 		data.append('action', 'fb_get_available_slots');
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		container.innerHTML = '';
 		
 		if (slots.length === 0) {
-			container.innerHTML = 'Nessun orario disponibile per questa data.';
+			container.innerHTML = '<p class="fb-no-slots">Nessun orario disponibile per questa data.</p>';
 			return;
 		}
 
