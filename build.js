@@ -1,10 +1,10 @@
 const fs = require('fs');
 const archiver = require('archiver');
 const path = require('path');
-const { stampVersion } = require('./scripts/version');
+const { getVersionInfo, getStampedPhpContent } = require('./scripts/version');
 
-// Assicura che la versione e il commit Git siano aggiornati prima dell'archivio
-const versionInfo = stampVersion();
+const versionInfo = getVersionInfo();
+const stampedPhp = getStampedPhpContent();
 
 const zipPath = path.join(__dirname, 'free-bookly.zip');
 const output = fs.createWriteStream(zipPath);
@@ -30,8 +30,12 @@ archive.on('error', function(err) {
 
 archive.pipe(output);
 
+// Inseriamo free-bookly.php con il timbro esatto di versione Git
+archive.append(stampedPhp, { name: 'free-bookly/free-bookly.php' });
+
 // Escludiamo cartelle e file non necessari per l'ambiente di produzione
 const ignoreList = [
+  'free-bookly.php', // Inserito manualmente con archive.append sopra
   'node_modules/**',
   'scripts/**',
   'tests/**',

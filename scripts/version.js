@@ -11,18 +11,28 @@ function getGitCommitId() {
   }
 }
 
-function stampVersion() {
+function getVersionInfo() {
   const rootDir = path.resolve(__dirname, '..');
   const packageJsonPath = path.join(rootDir, 'package.json');
-  const phpMainPath = path.join(rootDir, 'free-bookly.php');
-
   const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+
   const baseVersion = pkg.version || '1.1.0';
   const commitId = getGitCommitId();
   const author = pkg.author || 'Stefano Lenzi';
   const fullVersion = `${baseVersion}-build.${commitId}`;
 
-  // Aggiorna free-bookly.php
+  return {
+    rootDir,
+    baseVersion,
+    commitId,
+    fullVersion,
+    author
+  };
+}
+
+function getStampedPhpContent() {
+  const { rootDir, baseVersion, commitId, fullVersion, author } = getVersionInfo();
+  const phpMainPath = path.join(rootDir, 'free-bookly.php');
   let phpContent = fs.readFileSync(phpMainPath, 'utf8');
 
   // Sostituisce la versione nel docblock di intestazione di WordPress
@@ -44,22 +54,32 @@ function stampVersion() {
     phpContent = phpContent.replace(/define\(\s*'FREE_BOOKLY_VERSION',\s*'[^']+'\s*\);/, `define( 'FREE_BOOKLY_VERSION', '${baseVersion}' );`);
   }
 
-  fs.writeFileSync(phpMainPath, phpContent, 'utf8');
+  return phpContent;
+}
 
-  console.log(`[Version Stamp] Free Bookly v${baseVersion} (build: ${commitId})`);
-  console.log(`[Version Stamp] Full Version: ${fullVersion}`);
-  console.log(`[Version Stamp] Author: ${author}`);
+function stampVersion(writeToDisk = true) {
+  const info = getVersionInfo();
+  const stampedContent = getStampedPhpContent();
 
-  return {
-    baseVersion,
-    commitId,
-    fullVersion,
-    author
-  };
+  if (writeToDisk) {
+    const phpMainPath = path.join(info.rootDir, 'free-bookly.php');
+    fs.writeFileSync(phpMainPath, stampedContent, 'utf8');
+  }
+
+  console.log(`[Version Stamp] Free Bookly v${info.baseVersion} (build: ${info.commitId})`);
+  console.log(`[Version Stamp] Full Version: ${info.fullVersion}`);
+  console.log(`[Version Stamp] Author: ${info.author}`);
+
+  return info;
 }
 
 if (require.main === module) {
-  stampVersion();
+  stampVersion(true);
 }
 
-module.exports = { stampVersion, getGitCommitId };
+module.exports = {
+  getVersionInfo,
+  getStampedPhpContent,
+  stampVersion,
+  getGitCommitId
+};
