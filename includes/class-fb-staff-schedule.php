@@ -83,17 +83,30 @@ class FB_Staff_Schedule {
 					'breaks'         => isset( $saved_breaks[ $day ] ) ? $saved_breaks[ $day ] : array(),
 				);
 			} else {
-				// Default
-				$is_weekday = ( $day <= 5 );
+				// Eredita da impostazioni orari aziendali
+				$company_hours = class_exists( 'FB_Settings' ) ? FB_Settings::get_company_working_hours() : array();
+				$ch = isset( $company_hours[ $day ] ) ? $company_hours[ $day ] : null;
+
+				$is_working = $ch ? ! empty( $ch['is_working'] ) : ( $day <= 5 );
+				$start_time = ( $ch && ! empty( $ch['start_time'] ) ) ? $ch['start_time'] : '09:00';
+				$end_time   = ( $ch && ! empty( $ch['end_time'] ) ) ? $ch['end_time'] : '18:00';
+
+				$breaks = array();
+				if ( $is_working ) {
+					$b_start = ( $ch && ! empty( $ch['break_start'] ) ) ? $ch['break_start'] : '13:00';
+					$b_end   = ( $ch && ! empty( $ch['break_end'] ) ) ? $ch['break_end'] : '14:00';
+					if ( ! empty( $b_start ) && ! empty( $b_end ) ) {
+						$breaks[] = array( 'start_time' => $b_start, 'end_time' => $b_end );
+					}
+				}
+
 				$schedule[ $day ] = array(
 					'day_index'      => $day,
 					'day_name'       => $day_names[ $day ],
-					'is_working_day' => $is_weekday ? 1 : 0,
-					'start_time'     => '09:00',
-					'end_time'       => '18:00',
-					'breaks'         => $is_weekday ? array(
-						array( 'start_time' => '13:00', 'end_time' => '14:00' )
-					) : array(),
+					'is_working_day' => $is_working ? 1 : 0,
+					'start_time'     => $start_time,
+					'end_time'       => $end_time,
+					'breaks'         => $breaks,
 				);
 			}
 		}
@@ -213,6 +226,45 @@ class FB_Staff_Schedule {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Inizializza la settimana lavorativa per un nuovo membro dello staff ereditando gli orari aziendali.
+	 *
+	 * @param int   $staff_id
+	 * @param array $company_hours
+	 * @return bool
+	 */
+	public static function init_default_schedule( $staff_id, array $company_hours = array() ) {
+		if ( empty( $company_hours ) && class_exists( 'FB_Settings' ) ) {
+			$company_hours = FB_Settings::get_company_working_hours();
+		}
+
+		$days_data = array();
+		for ( $d = 1; $d <= 7; $d++ ) {
+			$ch = isset( $company_hours[ $d ] ) ? $company_hours[ $d ] : null;
+			$is_working = $ch ? ! empty( $ch['is_working'] ) : ( $d <= 5 );
+			$start = ( $ch && ! empty( $ch['start_time'] ) ) ? $ch['start_time'] : '09:00';
+			$end   = ( $ch && ! empty( $ch['end_time'] ) ) ? $ch['end_time'] : '18:00';
+
+			$breaks = array();
+			if ( $is_working ) {
+				$b_start = ( $ch && ! empty( $ch['break_start'] ) ) ? $ch['break_start'] : '13:00';
+				$b_end   = ( $ch && ! empty( $ch['break_end'] ) ) ? $ch['break_end'] : '14:00';
+				if ( ! empty( $b_start ) && ! empty( $b_end ) ) {
+					$breaks[] = array( 'start_time' => $b_start, 'end_time' => $b_end );
+				}
+			}
+
+			$days_data[ $d ] = array(
+				'is_working' => $is_working ? 1 : 0,
+				'start_time' => $start,
+				'end_time'   => $end,
+				'breaks'     => $breaks,
+			);
+		}
+
+		return self::save_schedule( $staff_id, $days_data );
 	}
 
 	/**

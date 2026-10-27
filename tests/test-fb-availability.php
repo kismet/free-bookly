@@ -65,4 +65,56 @@ class Test_FB_Availability extends WP_UnitTestCase {
 		$this->assertContains( '13:00', $slots );
 		$this->assertContains( '15:00', $slots );
 	}
+
+	public function test_availability_with_holiday() {
+		require_once dirname( dirname( __FILE__ ) ) . '/includes/class-fb-holiday.php';
+
+		$service = new FB_Service( array( 'title' => 'Taglio', 'duration' => 30 ) );
+		$service->save();
+		$staff = new FB_Staff( array( 'full_name' => 'Sara' ) );
+		$staff->save();
+
+		// Impostiamo giorno festivo
+		$holiday = new FB_Holiday( array(
+			'staff_id'     => 0,
+			'holiday_date' => '2026-12-25',
+			'title'        => 'Natale'
+		) );
+		$holiday->save();
+
+		$checker = new FB_Availability();
+		$slots = $checker->get_available_slots( $service->id, $staff->id, '2026-12-25' );
+		$this->assertEmpty( $slots );
+	}
+
+	public function test_availability_with_buffer_time() {
+		// Servizio con buffer_after di 15 min
+		$service = new FB_Service( array(
+			'title'        => 'Trattamento Speciale',
+			'duration'     => 45,
+			'buffer_after' => 15,
+		) );
+		$service->save();
+		$staff = new FB_Staff( array( 'full_name' => 'Chiara' ) );
+		$staff->save();
+
+		// Appuntamento dalle 10:00 alle 10:45
+		$appointment = new FB_Appointment( array(
+			'staff_id'   => $staff->id,
+			'service_id' => $service->id,
+			'start_date' => '2026-08-01 10:00:00',
+			'end_date'   => '2026-08-01 10:45:00',
+			'status'     => 'approved'
+		) );
+		$appointment->save();
+
+		$checker = new FB_Availability();
+		$slots = $checker->get_available_slots( $service->id, $staff->id, '2026-08-01' );
+
+		// Poiché c'è un buffer after di 15 min fino alle 11:00, lo slot delle 10:00 e 10:45 non deve essere disponibile
+		$this->assertNotContains( '10:00', $slots );
+		$this->assertNotContains( '10:45', $slots );
+		// Ma alle 11:00 il collaboratore è nuovamente libero
+		$this->assertContains( '11:00', $slots );
+	}
 }

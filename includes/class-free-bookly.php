@@ -35,7 +35,10 @@ class Free_Bookly {
 		require_once $plugin_path . 'includes/class-free-bookly-activator.php';
 		require_once $plugin_path . 'includes/class-module-manager.php';
 
-		// Modelli
+		// Modelli e Helpers
+		require_once $plugin_path . 'includes/class-fb-settings.php';
+		require_once $plugin_path . 'includes/class-fb-category.php';
+		require_once $plugin_path . 'includes/class-fb-holiday.php';
 		require_once $plugin_path . 'includes/class-fb-service.php';
 		require_once $plugin_path . 'includes/class-fb-staff.php';
 		require_once $plugin_path . 'includes/class-fb-staff-schedule.php';
@@ -95,8 +98,11 @@ class Free_Bookly {
 
 	public function maybe_update_db() {
 		global $wpdb;
-		$table_name = $wpdb->prefix . 'fb_staff_schedule';
-		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) !== $table_name ) {
+		$cat_table = $wpdb->prefix . 'fb_categories';
+		$current_db_version = get_option( 'fb_db_version' );
+
+		if ( $current_db_version !== Free_Bookly_Activator::DB_VERSION || $wpdb->get_var( "SHOW TABLES LIKE '$cat_table'" ) !== $cat_table ) {
+			require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-free-bookly-activator.php';
 			Free_Bookly_Activator::activate();
 		}
 	}

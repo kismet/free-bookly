@@ -49,6 +49,7 @@ const ignoreList = [
   'generate-pdf.js',
   'test-e2e.js',
   'test-schedule-e2e.js',
+  'test-bookly-parity-e2e.js',
   'phpunit.xml.dist',
   'free-bookly.zip',
   'specifiche-plugin-booking.md'
