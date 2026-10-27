@@ -16,12 +16,14 @@ global $wpdb;
 // 1. Rimuovi le tabelle custom nell'ordine corretto
 $tables = array(
 	$wpdb->prefix . 'fb_appointments',
+	$wpdb->prefix . 'fb_holidays',
 	$wpdb->prefix . 'fb_staff_breaks',
 	$wpdb->prefix . 'fb_staff_schedule',
 	$wpdb->prefix . 'fb_customers',
 	$wpdb->prefix . 'fb_staff_services',
 	$wpdb->prefix . 'fb_staff',
 	$wpdb->prefix . 'fb_services',
+	$wpdb->prefix . 'fb_categories',
 );
 
 foreach ( $tables as $table ) {
@@ -29,5 +31,23 @@ foreach ( $tables as $table ) {
 }
 
 // 2. Rimuovi le opzioni di configurazione registrate
-delete_option( 'free_bookly_active_modules' );
-delete_option( 'fb_active_modules' );
+$options_to_delete = array(
+	'free_bookly_active_modules',
+	'fb_active_modules',
+	'fb_db_version',
+	'fb_company_name',
+	'fb_company_email',
+	'fb_company_phone',
+	'fb_company_address',
+	'fb_company_logo',
+	'fb_default_appointment_status',
+	'fb_time_slot_length',
+	'fb_script_loading',
+	'fb_currency',
+	'fb_currency_format',
+	'fb_company_working_hours',
+);
+
+foreach ( $options_to_delete as $opt ) {
+	delete_option( $opt );
+}
