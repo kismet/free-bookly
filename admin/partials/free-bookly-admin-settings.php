@@ -10,6 +10,8 @@ $tabs = array(
 	'working_hours' => array( 'title' => __( 'Orari Lavorativi', 'free-bookly' ), 'icon' => 'dashicons-clock' ),
 	'holidays'      => array( 'title' => __( 'Giorni Festivi', 'free-bookly' ), 'icon' => 'dashicons-calendar-alt' ),
 	'payments'      => array( 'title' => __( 'Pagamenti & Valuta', 'free-bookly' ), 'icon' => 'dashicons-money-alt' ),
+	'notifications' => array( 'title' => __( 'Notifiche Email', 'free-bookly' ), 'icon' => 'dashicons-email-alt' ),
+	'custom_fields' => array( 'title' => __( 'Campi Personalizzati', 'free-bookly' ), 'icon' => 'dashicons-forms' ),
 );
 
 $day_names = FB_Staff_Schedule::get_day_names();
@@ -22,6 +24,12 @@ $day_names = FB_Staff_Schedule::get_day_names();
 	<?php if ( isset( $_GET['updated'] ) ) : ?>
 		<div class="notice notice-success is-dismissible" style="margin-top: 15px;">
 			<p><strong><?php esc_html_e( 'Impostazioni salvate con successo!', 'free-bookly' ); ?></strong></p>
+		</div>
+	<?php endif; ?>
+
+	<?php if ( isset( $_GET['deleted'] ) ) : ?>
+		<div class="notice notice-success is-dismissible" style="margin-top: 15px;">
+			<p><strong><?php esc_html_e( 'Elemento eliminato con successo!', 'free-bookly' ); ?></strong></p>
 		</div>
 	<?php endif; ?>
 
@@ -287,6 +295,138 @@ $day_names = FB_Staff_Schedule::get_day_names();
 		</div>
 	<?php endif; ?>
 
+	<!-- TAB 6: NOTIFICHE EMAIL -->
+	<?php if ( 'notifications' === $active_tab ) : ?>
+		<?php
+		require_once FREE_BOOKLY_PLUGIN_DIR . 'includes/modules/class-fb-email-notifications.php';
+		$module_manager   = new Free_Bookly_Module_Manager();
+		$module_active    = in_array( 'email_notifications', $module_manager->get_active_modules(), true );
+		$templates        = FB_Email_Notifications::get_templates();
+		$template_labels  = FB_Email_Notifications::get_template_labels();
+		$placeholders     = FB_Email_Notifications::get_placeholders();
+		$email_log        = FB_Email_Notifications::get_log();
+		$enable_flags     = array(
+			'customer_created'   => __( 'Invia al cliente la ricezione della prenotazione', 'free-bookly' ),
+			'customer_approved'  => __( 'Invia al cliente la conferma quando la prenotazione viene approvata', 'free-bookly' ),
+			'customer_cancelled' => __( 'Invia al cliente la comunicazione di annullamento', 'free-bookly' ),
+			'staff_created'      => __( 'Invia a collaboratore e amministratore la notifica di nuova prenotazione', 'free-bookly' ),
+			'attach_ics'         => __( 'Allega il file calendario (.ics) compatibile con Google, Apple e Outlook', 'free-bookly' ),
+		);
+		?>
+
+		<?php if ( isset( $_GET['test_sent'] ) ) : ?>
+			<div class="notice <?php echo '1' === $_GET['test_sent'] ? 'notice-success' : 'notice-error'; ?> is-dismissible">
+				<p><?php echo '1' === $_GET['test_sent'] ? esc_html__( 'Email di prova inviata.', 'free-bookly' ) : esc_html__( 'Invio email di prova non riuscito: verifica la configurazione email (SMTP) del server.', 'free-bookly' ); ?></p>
+			</div>
+		<?php endif; ?>
+
+		<?php if ( ! $module_active ) : ?>
+			<div class="notice notice-warning inline">
+				<p>
+					<?php esc_html_e( 'Il modulo Notifiche Email è disattivato: nessuna email verrà inviata.', 'free-bookly' ); ?>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-modules' ) ); ?>"><?php esc_html_e( 'Attivalo da Moduli Extra', 'free-bookly' ); ?></a>
+				</p>
+			</div>
+		<?php endif; ?>
+
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-settings&tab=notifications' ) ); ?>">
+			<input type="hidden" name="action" value="fb_save_settings_notifications">
+			<?php wp_nonce_field( 'fb_save_settings_action', 'fb_settings_nonce' ); ?>
+
+			<div class="fb-card" style="max-width: 900px;">
+				<h2><?php esc_html_e( 'Mittente e Abilitazioni', 'free-bookly' ); ?></h2>
+
+				<div class="fb-form-group">
+					<label for="fb_email_from_name"><?php esc_html_e( 'Nome mittente', 'free-bookly' ); ?></label>
+					<input type="text" id="fb_email_from_name" name="fb_email_from_name" class="regular-text" value="<?php echo esc_attr( FB_Settings::get( 'email_from_name', FB_Settings::get( 'company_name', get_bloginfo( 'name' ) ) ) ); ?>">
+				</div>
+				<div class="fb-form-group">
+					<label for="fb_email_from_address"><?php esc_html_e( 'Indirizzo email mittente', 'free-bookly' ); ?></label>
+					<input type="email" id="fb_email_from_address" name="fb_email_from_address" class="regular-text" value="<?php echo esc_attr( FB_Settings::get( 'email_from_address', FB_Settings::get( 'company_email', get_bloginfo( 'admin_email' ) ) ) ); ?>">
+				</div>
+
+				<?php foreach ( $enable_flags as $flag => $label ) : ?>
+					<div class="fb-form-group">
+						<label>
+							<input type="checkbox" id="fb_email_enable_<?php echo esc_attr( $flag ); ?>" name="fb_email_enable[<?php echo esc_attr( $flag ); ?>]" value="1" <?php checked( FB_Email_Notifications::is_enabled( $flag ) ); ?>>
+							<?php echo esc_html( $label ); ?>
+						</label>
+					</div>
+				<?php endforeach; ?>
+			</div>
+
+			<div class="fb-card" style="max-width: 900px; margin-top: 20px;">
+				<h2><?php esc_html_e( 'Modelli dei Messaggi', 'free-bookly' ); ?></h2>
+				<p style="color: #64748b;">
+					<?php esc_html_e( 'Segnaposto disponibili (da usare in oggetto e testo):', 'free-bookly' ); ?>
+					<?php foreach ( $placeholders as $ph => $desc ) : ?>
+						<code title="<?php echo esc_attr( $desc ); ?>"><?php echo esc_html( $ph ); ?></code>
+					<?php endforeach; ?>
+				</p>
+
+				<?php foreach ( $template_labels as $key => $label ) : ?>
+					<h3 style="margin-top: 24px;"><?php echo esc_html( $label ); ?></h3>
+					<div class="fb-form-group">
+						<label for="fb_tpl_<?php echo esc_attr( $key ); ?>_subject"><?php esc_html_e( 'Oggetto', 'free-bookly' ); ?></label>
+						<input type="text" id="fb_tpl_<?php echo esc_attr( $key ); ?>_subject" name="fb_tpl[<?php echo esc_attr( $key ); ?>][subject]" class="large-text" value="<?php echo esc_attr( $templates[ $key ]['subject'] ); ?>">
+					</div>
+					<div class="fb-form-group">
+						<label for="fb_tpl_<?php echo esc_attr( $key ); ?>_body"><?php esc_html_e( 'Testo', 'free-bookly' ); ?></label>
+						<textarea id="fb_tpl_<?php echo esc_attr( $key ); ?>_body" name="fb_tpl[<?php echo esc_attr( $key ); ?>][body]" rows="9" class="large-text"><?php echo esc_textarea( $templates[ $key ]['body'] ); ?></textarea>
+					</div>
+				<?php endforeach; ?>
+
+				<p class="submit" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+					<button type="submit" class="button button-primary"><?php esc_html_e( 'Salva Notifiche', 'free-bookly' ); ?></button>
+					<button type="submit" name="fb_restore_defaults" value="1" class="button" onclick="return confirm('<?php esc_attr_e( 'Ripristinare i modelli predefiniti?', 'free-bookly' ); ?>');"><?php esc_html_e( 'Ripristina modelli predefiniti', 'free-bookly' ); ?></button>
+				</p>
+			</div>
+		</form>
+
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-settings&tab=notifications' ) ); ?>" class="fb-card" style="max-width: 900px; margin-top: 20px;">
+			<h2><?php esc_html_e( 'Email di Prova', 'free-bookly' ); ?></h2>
+			<input type="hidden" name="action" value="fb_send_test_email">
+			<?php wp_nonce_field( 'fb_save_settings_action', 'fb_settings_nonce' ); ?>
+			<div class="fb-form-group">
+				<label for="fb_test_email_to"><?php esc_html_e( 'Invia a', 'free-bookly' ); ?></label>
+				<input type="email" id="fb_test_email_to" name="fb_test_email_to" class="regular-text" required value="<?php echo esc_attr( FB_Settings::get( 'company_email', get_bloginfo( 'admin_email' ) ) ); ?>">
+			</div>
+			<button type="submit" id="fb_send_test_btn" class="button"><?php esc_html_e( 'Invia email di prova', 'free-bookly' ); ?></button>
+		</form>
+
+		<div class="fb-card" style="max-width: 900px; margin-top: 20px;">
+			<h2><?php esc_html_e( 'Registro Ultimi Invii', 'free-bookly' ); ?></h2>
+			<?php if ( empty( $email_log ) ) : ?>
+				<p style="color: #64748b; font-style: italic;"><?php esc_html_e( 'Nessuna email inviata finora.', 'free-bookly' ); ?></p>
+			<?php else : ?>
+				<table class="wp-list-table widefat striped" id="fb-email-log">
+					<thead>
+						<tr>
+							<th><?php esc_html_e( 'Data', 'free-bookly' ); ?></th>
+							<th><?php esc_html_e( 'Modello', 'free-bookly' ); ?></th>
+							<th><?php esc_html_e( 'Destinatario', 'free-bookly' ); ?></th>
+							<th><?php esc_html_e( 'Oggetto', 'free-bookly' ); ?></th>
+							<th><?php esc_html_e( '.ics', 'free-bookly' ); ?></th>
+							<th><?php esc_html_e( 'Esito', 'free-bookly' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $email_log as $entry ) : ?>
+							<tr>
+								<td><?php echo esc_html( $entry['time'] ); ?></td>
+								<td><?php echo esc_html( $entry['template'] ); ?></td>
+								<td><?php echo esc_html( $entry['to'] ); ?></td>
+								<td><?php echo esc_html( $entry['subject'] ); ?></td>
+								<td><?php echo $entry['ics'] ? '&#10003;' : '&ndash;'; ?></td>
+								<td><?php echo $entry['sent'] ? esc_html__( 'Inviata', 'free-bookly' ) : esc_html__( 'Errore', 'free-bookly' ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php endif; ?>
+		</div>
+	<?php endif; ?>
+
 	<!-- TAB 5: PAGAMENTI E VALUTA -->
 	<?php if ( 'payments' === $active_tab ) : ?>
 		<div class="fb-card" style="max-width: 800px;">
@@ -332,6 +472,138 @@ $day_names = FB_Staff_Schedule::get_day_names();
 					<button type="submit" class="button button-primary"><?php esc_html_e( 'Salva Impostazioni Pagamenti', 'free-bookly' ); ?></button>
 				</p>
 			</form>
+		</div>
+	<?php endif; ?>
+
+	<!-- TAB 7: CAMPI PERSONALIZZATI (CUSTOM FIELDS) -->
+	<?php if ( 'custom_fields' === $active_tab ) : ?>
+		<?php
+		require_once FREE_BOOKLY_PLUGIN_DIR . 'includes/class-fb-custom-field.php';
+		require_once FREE_BOOKLY_PLUGIN_DIR . 'includes/class-fb-service.php';
+
+		$all_services = FB_Service::get_all();
+		$all_custom_fields = FB_Custom_Field::get_all();
+		$edit_cf_id = isset( $_GET['edit_field'] ) ? absint( $_GET['edit_field'] ) : 0;
+		$cf_to_edit = $edit_cf_id ? FB_Custom_Field::get_by_id( $edit_cf_id ) : null;
+		?>
+
+		<div class="fb-layout-columns" style="margin-top: 20px;">
+			<!-- Form Aggiungi/Modifica Campo -->
+			<div class="fb-col-form" style="max-width: 400px;">
+				<div class="fb-card">
+					<h2><?php echo $cf_to_edit ? esc_html__( 'Modifica Campo Personalizzato', 'free-bookly' ) : esc_html__( 'Aggiungi Campo Personalizzato', 'free-bookly' ); ?></h2>
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-settings&tab=custom_fields' ) ); ?>">
+						<?php wp_nonce_field( 'fb_save_custom_field_action', 'fb_custom_field_nonce' ); ?>
+						<input type="hidden" name="action" value="fb_save_custom_field">
+						<?php if ( $cf_to_edit ) : ?>
+							<input type="hidden" name="field_id" value="<?php echo esc_attr( $cf_to_edit->id ); ?>">
+						<?php endif; ?>
+
+						<div class="fb-form-group">
+							<label for="fb_cf_label"><?php esc_html_e( 'Etichetta del Campo *', 'free-bookly' ); ?></label>
+							<input type="text" id="fb_cf_label" name="label" required value="<?php echo $cf_to_edit ? esc_attr( $cf_to_edit->label ) : ''; ?>" placeholder="<?php esc_attr_e( 'Es. Note aggiuntive, Codice Fiscale', 'free-bookly' ); ?>">
+						</div>
+
+						<div class="fb-form-group">
+							<label for="fb_cf_type"><?php esc_html_e( 'Tipo di Campo', 'free-bookly' ); ?></label>
+							<select id="fb_cf_type" name="field_type" style="width: 100%;">
+								<?php foreach ( FB_Custom_Field::$allowed_types as $t_key => $t_label ) : ?>
+									<option value="<?php echo esc_attr( $t_key ); ?>" <?php selected( $cf_to_edit ? $cf_to_edit->field_type : 'text', $t_key ); ?>>
+										<?php echo esc_html( $t_label ); ?>
+									</option>
+								<?php endforeach; ?>
+							</select>
+						</div>
+
+						<div class="fb-form-group" id="fb_cf_options_group">
+							<label for="fb_cf_options"><?php esc_html_e( 'Opzioni Scelta (Select, Radio, Checkbox)', 'free-bookly' ); ?></label>
+							<textarea id="fb_cf_options" name="options" rows="4" style="width: 100%;" placeholder="<?php esc_attr_e( 'Inserisci un\'opzione per riga:&#10;Opzione 1&#10;Opzione 2&#10;Opzione 3', 'free-bookly' ); ?>"><?php echo $cf_to_edit ? esc_textarea( $cf_to_edit->options ) : ''; ?></textarea>
+							<small style="color: #64748b;"><?php esc_html_e( 'Utilizzato solo per campi con opzioni multiple. Una voce per riga.', 'free-bookly' ); ?></small>
+						</div>
+
+						<div class="fb-form-group">
+							<label for="fb_cf_service"><?php esc_html_e( 'Servizio Collegato', 'free-bookly' ); ?></label>
+							<select id="fb_cf_service" name="service_id" style="width: 100%;">
+								<option value="0"><?php esc_html_e( 'Tutti i servizi (Globale)', 'free-bookly' ); ?></option>
+								<?php foreach ( $all_services as $srv ) : ?>
+									<option value="<?php echo esc_attr( $srv->id ); ?>" <?php selected( $cf_to_edit ? $cf_to_edit->service_id : 0, $srv->id ); ?>>
+										<?php echo esc_html( $srv->title ); ?>
+									</option>
+								<?php endforeach; ?>
+							</select>
+						</div>
+
+						<div class="fb-form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+							<input type="checkbox" id="fb_cf_required" name="is_required" value="1" <?php checked( $cf_to_edit ? $cf_to_edit->is_required : 0, 1 ); ?>>
+							<label for="fb_cf_required" style="margin: 0; font-weight: 500; cursor: pointer;"><?php esc_html_e( 'Campo Obbligatorio', 'free-bookly' ); ?></label>
+						</div>
+
+						<div class="fb-form-group" style="margin-top: 12px;">
+							<label for="fb_cf_sort"><?php esc_html_e( 'Ordine di Visualizzazione', 'free-bookly' ); ?></label>
+							<input type="number" id="fb_cf_sort" name="sort_order" value="<?php echo $cf_to_edit ? esc_attr( $cf_to_edit->sort_order ) : '0'; ?>" min="0" step="1">
+						</div>
+
+						<div class="fb-form-actions" style="margin-top: 20px;">
+							<button type="submit" id="fb_save_cf_btn" class="button button-primary"><?php echo $cf_to_edit ? esc_html__( 'Aggiorna Campo', 'free-bookly' ) : esc_html__( 'Salva Campo Personalizzato', 'free-bookly' ); ?></button>
+							<?php if ( $cf_to_edit ) : ?>
+								<a href="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-settings&tab=custom_fields' ) ); ?>" class="button"><?php esc_html_e( 'Annulla', 'free-bookly' ); ?></a>
+							<?php endif; ?>
+						</div>
+					</form>
+				</div>
+			</div>
+
+			<!-- Tabella Campi Esistenti -->
+			<div class="fb-col-table">
+				<div class="fb-card">
+					<h2><?php esc_html_e( 'Campi Personalizzati Attivi', 'free-bookly' ); ?></h2>
+					<table class="wp-list-table widefat striped fb-admin-table">
+						<thead>
+							<tr>
+								<th style="width: 45px;">ID</th>
+								<th><?php esc_html_e( 'Etichetta', 'free-bookly' ); ?></th>
+								<th><?php esc_html_e( 'Tipo', 'free-bookly' ); ?></th>
+								<th><?php esc_html_e( 'Servizio', 'free-bookly' ); ?></th>
+								<th style="width: 80px; text-align: center;"><?php esc_html_e( 'Obbligo', 'free-bookly' ); ?></th>
+								<th style="width: 60px; text-align: center;"><?php esc_html_e( 'Ordine', 'free-bookly' ); ?></th>
+								<th style="width: 130px; text-align: center;"><?php esc_html_e( 'Azioni', 'free-bookly' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php if ( empty( $all_custom_fields ) ) : ?>
+								<tr>
+									<td colspan="7"><?php esc_html_e( 'Nessun campo personalizzato definito. Utilizza il modulo a sinistra per aggiungerne uno.', 'free-bookly' ); ?></td>
+								</tr>
+							<?php else : ?>
+								<?php foreach ( $all_custom_fields as $cf ) : ?>
+									<tr>
+										<td><?php echo esc_html( $cf->id ); ?></td>
+										<td><strong><?php echo esc_html( $cf->label ); ?></strong></td>
+										<td>
+											<span class="fb-badge fb-badge-secondary">
+												<?php echo esc_html( isset( FB_Custom_Field::$allowed_types[ $cf->field_type ] ) ? FB_Custom_Field::$allowed_types[ $cf->field_type ] : $cf->field_type ); ?>
+											</span>
+										</td>
+										<td><?php echo esc_html( $cf->get_service_name() ); ?></td>
+										<td style="text-align: center;">
+											<?php if ( $cf->is_required ) : ?>
+												<span class="fb-badge" style="background: #fee2e2; color: #b91c1c;"><?php esc_html_e( 'Sì', 'free-bookly' ); ?></span>
+											<?php else : ?>
+												<span style="color: #94a3b8;"><?php esc_html_e( 'No', 'free-bookly' ); ?></span>
+											<?php endif; ?>
+										</td>
+										<td style="text-align: center;"><?php echo esc_html( $cf->sort_order ); ?></td>
+										<td style="text-align: center;">
+											<a href="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-settings&tab=custom_fields&edit_field=' . $cf->id ) ); ?>" class="button button-small"><?php esc_html_e( 'Modifica', 'free-bookly' ); ?></a>
+											<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=free-bookly-settings&tab=custom_fields&action=fb_delete_custom_field&field_id=' . $cf->id ), 'fb_delete_custom_field_action' ) ); ?>" class="button button-small fb-btn-delete" onclick="return confirm('<?php esc_attr_e( 'Eliminare questo campo personalizzato?', 'free-bookly' ); ?>');"><?php esc_html_e( 'Elimina', 'free-bookly' ); ?></a>
+										</td>
+									</tr>
+								<?php endforeach; ?>
+							<?php endif; ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
 		</div>
 	<?php endif; ?>
 

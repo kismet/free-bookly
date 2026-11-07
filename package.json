@@ -1,6 +1,6 @@
 {
   "name": "free-bookly",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "description": "L'alternativa Open Source a Bookly per la gestione delle prenotazioni.",
   "main": "free-bookly.php",
   "scripts": {

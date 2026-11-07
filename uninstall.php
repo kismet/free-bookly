@@ -15,6 +15,9 @@ global $wpdb;
 
 // 1. Rimuovi le tabelle custom nell'ordine corretto
 $tables = array(
+	$wpdb->prefix . 'fb_appointment_extras',
+	$wpdb->prefix . 'fb_service_extras',
+	$wpdb->prefix . 'fb_custom_fields',
 	$wpdb->prefix . 'fb_appointments',
 	$wpdb->prefix . 'fb_holidays',
 	$wpdb->prefix . 'fb_staff_breaks',
@@ -46,6 +49,15 @@ $options_to_delete = array(
 	'fb_currency',
 	'fb_currency_format',
 	'fb_company_working_hours',
+	'fb_email_log',
+	'fb_email_templates',
+	'fb_email_from_name',
+	'fb_email_from_address',
+	'fb_email_enable_customer_created',
+	'fb_email_enable_customer_approved',
+	'fb_email_enable_customer_cancelled',
+	'fb_email_enable_staff_created',
+	'fb_email_enable_attach_ics',
 );
 
 foreach ( $options_to_delete as $opt ) {

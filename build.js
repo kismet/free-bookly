@@ -47,9 +47,8 @@ const ignoreList = [
   'package-lock.json',
   'build.js',
   'generate-pdf.js',
-  'test-e2e.js',
-  'test-schedule-e2e.js',
-  'test-bookly-parity-e2e.js',
+  'test-*.js',
+  '.tmp-*/**',
   'phpunit.xml.dist',
   'free-bookly.zip',
   'specifiche-plugin-booking.md'

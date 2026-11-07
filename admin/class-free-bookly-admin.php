@@ -450,20 +450,69 @@ class Free_Bookly_Admin {
 			exit;
 		}
 
+		// 14b. Gestione Impostazioni: Notifiche Email
+		if ( isset( $_POST['action'] ) && 'fb_save_settings_notifications' === $_POST['action'] ) {
+			check_admin_referer( 'fb_save_settings_action', 'fb_settings_nonce' );
+
+			if ( ! empty( $_POST['fb_restore_defaults'] ) ) {
+				delete_option( 'fb_email_templates' );
+			} else {
+				FB_Settings::set( 'email_from_name', sanitize_text_field( wp_unslash( $_POST['fb_email_from_name'] ) ) );
+				FB_Settings::set( 'email_from_address', sanitize_email( wp_unslash( $_POST['fb_email_from_address'] ) ) );
+
+				$enable = isset( $_POST['fb_email_enable'] ) && is_array( $_POST['fb_email_enable'] ) ? $_POST['fb_email_enable'] : array();
+				foreach ( array( 'customer_created', 'customer_approved', 'customer_cancelled', 'staff_created', 'attach_ics' ) as $flag ) {
+					FB_Settings::set( 'email_enable_' . $flag, isset( $enable[ $flag ] ) ? 1 : 0 );
+				}
+
+				$tpl_in    = isset( $_POST['fb_tpl'] ) && is_array( $_POST['fb_tpl'] ) ? wp_unslash( $_POST['fb_tpl'] ) : array();
+				$templates = array();
+				foreach ( array( 'customer_created', 'customer_approved', 'customer_cancelled', 'staff_created' ) as $key ) {
+					if ( isset( $tpl_in[ $key ] ) ) {
+						$templates[ $key ] = array(
+							'subject' => sanitize_text_field( $tpl_in[ $key ]['subject'] ),
+							'body'    => sanitize_textarea_field( $tpl_in[ $key ]['body'] ),
+						);
+					}
+				}
+				FB_Settings::set( 'email_templates', $templates );
+			}
+
+			wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-settings&tab=notifications&updated=1' ) );
+			exit;
+		}
+
+		if ( isset( $_POST['action'] ) && 'fb_send_test_email' === $_POST['action'] ) {
+			check_admin_referer( 'fb_save_settings_action', 'fb_settings_nonce' );
+
+			require_once FREE_BOOKLY_PLUGIN_DIR . 'includes/modules/class-fb-email-notifications.php';
+
+			$to = sanitize_email( wp_unslash( $_POST['fb_test_email_to'] ) );
+			$ok = false;
+			if ( is_email( $to ) ) {
+				$company    = FB_Settings::get( 'company_name', get_bloginfo( 'name' ) );
+				$subject    = 'Email di prova - ' . $company;
+				$from_email = FB_Settings::get( 'email_from_address', FB_Settings::get( 'company_email', get_bloginfo( 'admin_email' ) ) );
+				$headers    = array( 'Content-Type: text/html; charset=UTF-8' );
+				if ( is_email( $from_email ) ) {
+					$headers[] = sprintf( 'From: %s <%s>', wp_strip_all_tags( FB_Settings::get( 'email_from_name', $company ) ), $from_email );
+				}
+				$vars = array( 'company_name' => $company );
+				$ok   = wp_mail( $to, $subject, FB_Email_Notifications::wrap_html( 'Questa è una email di prova inviata da Free Bookly: la configurazione email del tuo sito funziona.', $vars ), $headers );
+				FB_Email_Notifications::log( 'test', $to, $subject, $ok, false );
+			}
+
+			wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-settings&tab=notifications&test_sent=' . ( $ok ? '1' : '0' ) ) );
+			exit;
+		}
+
 		// 15. Gestione Cambio Stato Appuntamento (Approva / Annulla)
 		if ( isset( $_GET['page'] ) && 'free-bookly-calendar' === $_GET['page'] && isset( $_GET['action'] ) && in_array( $_GET['action'], array( 'approve', 'cancel' ), true ) && isset( $_GET['id'] ) ) {
 			$app_id = absint( $_GET['id'] );
 			check_admin_referer( 'fb_status_app_' . $app_id );
 
 			$new_status = 'approve' === $_GET['action'] ? 'approved' : 'cancelled';
-			global $wpdb;
-			$wpdb->update(
-				$wpdb->prefix . 'fb_appointments',
-				array( 'status' => $new_status ),
-				array( 'id' => $app_id ),
-				array( '%s' ),
-				array( '%d' )
-			);
+			FB_Appointment::update_status( $app_id, $new_status );
 
 			wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-calendar&message=' . ( 'approve' === $_GET['action'] ? 'approved' : 'cancelled' ) ) );
 			exit;
@@ -497,6 +546,90 @@ class Free_Bookly_Admin {
 			$module_manager->set_active_modules( $modules );
 
 			wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-modules&message=saved' ) );
+			exit;
+		}
+
+		// 18. Gestione Servizi Extra: Salvataggio ed Eliminazione
+		if ( isset( $_POST['action'] ) && 'fb_save_service_extra' === $_POST['action'] ) {
+			check_admin_referer( 'fb_save_service_extra_action', 'fb_extra_nonce' );
+
+			require_once FREE_BOOKLY_PLUGIN_DIR . 'includes/class-fb-service-extra.php';
+
+			$extra_id   = isset( $_POST['extra_id'] ) ? absint( $_POST['extra_id'] ) : 0;
+			$service_id = isset( $_POST['service_id'] ) ? absint( $_POST['service_id'] ) : 0;
+			$title      = isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : '';
+			$price      = isset( $_POST['price'] ) ? floatval( $_POST['price'] ) : 0.00;
+			$duration   = isset( $_POST['duration'] ) ? absint( $_POST['duration'] ) : 0;
+			$status     = isset( $_POST['status'] ) && in_array( $_POST['status'], array( 'active', 'inactive' ), true ) ? $_POST['status'] : 'active';
+
+			if ( empty( $title ) ) {
+				wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-services&view=extras&error=' . urlencode( 'Il titolo del servizio extra è obbligatorio.' ) ) );
+				exit;
+			}
+
+			$extra = new FB_Service_Extra( array(
+				'id'         => $extra_id,
+				'service_id' => $service_id,
+				'title'      => $title,
+				'price'      => $price,
+				'duration'   => $duration,
+				'status'     => $status,
+			) );
+			$extra->save();
+
+			wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-services&view=extras&message=saved' ) );
+			exit;
+		}
+
+		if ( isset( $_GET['page'] ) && 'free-bookly-services' === $_GET['page'] && isset( $_GET['action'] ) && 'fb_delete_service_extra' === $_GET['action'] && isset( $_GET['extra_id'] ) ) {
+			check_admin_referer( 'fb_delete_service_extra_action' );
+			require_once FREE_BOOKLY_PLUGIN_DIR . 'includes/class-fb-service-extra.php';
+			FB_Service_Extra::delete( absint( $_GET['extra_id'] ) );
+
+			wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-services&view=extras&message=deleted' ) );
+			exit;
+		}
+
+		// 19. Gestione Campi Personalizzati: Salvataggio ed Eliminazione
+		if ( isset( $_POST['action'] ) && 'fb_save_custom_field' === $_POST['action'] ) {
+			check_admin_referer( 'fb_save_custom_field_action', 'fb_custom_field_nonce' );
+
+			require_once FREE_BOOKLY_PLUGIN_DIR . 'includes/class-fb-custom-field.php';
+
+			$field_id    = isset( $_POST['field_id'] ) ? absint( $_POST['field_id'] ) : 0;
+			$label       = isset( $_POST['label'] ) ? sanitize_text_field( wp_unslash( $_POST['label'] ) ) : '';
+			$field_type  = isset( $_POST['field_type'] ) ? sanitize_key( $_POST['field_type'] ) : 'text';
+			$options     = isset( $_POST['options'] ) ? sanitize_textarea_field( wp_unslash( $_POST['options'] ) ) : '';
+			$is_required = ! empty( $_POST['is_required'] ) ? 1 : 0;
+			$service_id  = isset( $_POST['service_id'] ) ? absint( $_POST['service_id'] ) : 0;
+			$sort_order  = isset( $_POST['sort_order'] ) ? intval( $_POST['sort_order'] ) : 0;
+
+			if ( empty( $label ) ) {
+				wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-settings&tab=custom_fields&error=' . urlencode( 'L\'etichetta del campo è obbligatoria.' ) ) );
+				exit;
+			}
+
+			$field = new FB_Custom_Field( array(
+				'id'          => $field_id,
+				'label'       => $label,
+				'field_type'  => $field_type,
+				'options'     => $options,
+				'is_required' => $is_required,
+				'service_id'  => $service_id,
+				'sort_order'  => $sort_order,
+			) );
+			$field->save();
+
+			wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-settings&tab=custom_fields&updated=1' ) );
+			exit;
+		}
+
+		if ( isset( $_GET['page'] ) && 'free-bookly-settings' === $_GET['page'] && isset( $_GET['action'] ) && 'fb_delete_custom_field' === $_GET['action'] && isset( $_GET['field_id'] ) ) {
+			check_admin_referer( 'fb_delete_custom_field_action' );
+			require_once FREE_BOOKLY_PLUGIN_DIR . 'includes/class-fb-custom-field.php';
+			FB_Custom_Field::delete( absint( $_GET['field_id'] ) );
+
+			wp_safe_redirect( admin_url( 'admin.php?page=free-bookly-settings&tab=custom_fields&deleted=1' ) );
 			exit;
 		}
 	}
