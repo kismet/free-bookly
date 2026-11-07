@@ -7,6 +7,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once FREE_BOOKLY_PLUGIN_DIR . 'includes/class-fb-service-extra.php';
+
 $edit_id = isset( $_GET['edit'] ) ? absint( $_GET['edit'] ) : 0;
 $service_to_edit = $edit_id ? FB_Service::get_by_id( $edit_id ) : null;
 
@@ -20,7 +22,12 @@ if ( $selected_category > 0 ) {
 	$services = FB_Service::get_all();
 }
 
-$show_categories_panel = isset( $_GET['view'] ) && 'categories' === $_GET['view'];
+$all_services_list = FB_Service::get_all();
+
+$current_view = isset( $_GET['view'] ) ? sanitize_key( $_GET['view'] ) : 'services';
+$edit_extra_id = isset( $_GET['edit_extra'] ) ? absint( $_GET['edit_extra'] ) : 0;
+$extra_to_edit = $edit_extra_id ? FB_Service_Extra::get_by_id( $edit_extra_id ) : null;
+$extras_list = FB_Service_Extra::get_all();
 
 $message = isset( $_GET['message'] ) ? sanitize_text_field( $_GET['message'] ) : '';
 $error   = isset( $_GET['error'] ) ? sanitize_text_field( $_GET['error'] ) : '';
@@ -28,8 +35,14 @@ $error   = isset( $_GET['error'] ) ? sanitize_text_field( $_GET['error'] ) : '';
 
 <div class="wrap fb-admin-wrap">
 	<h1 class="wp-heading-inline"><?php esc_html_e( 'Gestione Servizi & Categorie', 'free-bookly' ); ?></h1>
-	<a href="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-services&view=' . ( $show_categories_panel ? 'services' : 'categories' ) ) ); ?>" class="page-title-action">
-		<?php echo $show_categories_panel ? '&larr; ' . esc_html__( 'Torna ai Servizi', 'free-bookly' ) : esc_html__( 'Gestisci Categorie', 'free-bookly' ); ?>
+	<a href="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-services&view=services' ) ); ?>" class="page-title-action <?php echo 'services' === $current_view ? 'active' : ''; ?>">
+		<?php esc_html_e( 'Servizi', 'free-bookly' ); ?>
+	</a>
+	<a href="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-services&view=categories' ) ); ?>" class="page-title-action <?php echo 'categories' === $current_view ? 'active' : ''; ?>">
+		<?php esc_html_e( 'Categorie', 'free-bookly' ); ?>
+	</a>
+	<a href="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-services&view=extras' ) ); ?>" class="page-title-action <?php echo 'extras' === $current_view ? 'active' : ''; ?>">
+		<?php esc_html_e( 'Servizi Extra & Add-ons', 'free-bookly' ); ?>
 	</a>
 	<hr class="wp-header-end">
 
@@ -49,7 +62,7 @@ $error   = isset( $_GET['error'] ) ? sanitize_text_field( $_GET['error'] ) : '';
 		</div>
 	<?php endif; ?>
 
-	<?php if ( $show_categories_panel ) : ?>
+	<?php if ( 'categories' === $current_view ) : ?>
 		<!-- ================= PANNELLO CATEGORIE ================= -->
 		<div class="fb-layout-columns" style="margin-top: 20px;">
 			<!-- Form Nuova Categoria -->
@@ -126,6 +139,121 @@ $error   = isset( $_GET['error'] ) ? sanitize_text_field( $_GET['error'] ) : '';
 											   onclick="return confirm('<?php esc_attr_e( 'Eliminare questa categoria? I servizi collegati non verranno eliminati.', 'free-bookly' ); ?>');">
 												<?php esc_html_e( 'Elimina', 'free-bookly' ); ?>
 											</a>
+										</td>
+									</tr>
+								<?php endforeach; ?>
+							<?php endif; ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+	<?php elseif ( 'extras' === $current_view ) : ?>
+		<!-- ================= PANNELLO SERVIZI EXTRA & ADD-ONS ================= -->
+		<div class="fb-layout-columns" style="margin-top: 20px;">
+			<!-- Form Aggiungi/Modifica Extra -->
+			<div class="fb-col-form" style="max-width: 400px;">
+				<div class="fb-card">
+					<h2><?php echo $extra_to_edit ? esc_html__( 'Modifica Servizio Extra', 'free-bookly' ) : esc_html__( 'Aggiungi Servizio Extra', 'free-bookly' ); ?></h2>
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-services&view=extras' ) ); ?>">
+						<?php wp_nonce_field( 'fb_save_service_extra_action', 'fb_extra_nonce' ); ?>
+						<input type="hidden" name="action" value="fb_save_service_extra">
+						<?php if ( $extra_to_edit ) : ?>
+							<input type="hidden" name="extra_id" value="<?php echo esc_attr( $extra_to_edit->id ); ?>">
+						<?php endif; ?>
+
+						<div class="fb-form-group">
+							<label for="fb_extra_title"><?php esc_html_e( 'Titolo Servizio Extra *', 'free-bookly' ); ?></label>
+							<input type="text" id="fb_extra_title" name="title" required value="<?php echo $extra_to_edit ? esc_attr( $extra_to_edit->title ) : ''; ?>" placeholder="<?php esc_attr_e( 'Es. Maschera Idratante, Massaggio 15m', 'free-bookly' ); ?>">
+						</div>
+
+						<div class="fb-form-group">
+							<label for="fb_extra_service"><?php esc_html_e( 'Servizio Collegato', 'free-bookly' ); ?></label>
+							<select id="fb_extra_service" name="service_id" style="width: 100%;">
+								<option value="0"><?php esc_html_e( 'Tutti i servizi (Globale)', 'free-bookly' ); ?></option>
+								<?php foreach ( $all_services_list as $srv ) : ?>
+									<option value="<?php echo esc_attr( $srv->id ); ?>" <?php selected( $extra_to_edit ? $extra_to_edit->service_id : 0, $srv->id ); ?>>
+										<?php echo esc_html( $srv->title ); ?>
+									</option>
+								<?php endforeach; ?>
+							</select>
+							<small style="color: #64748b;"><?php esc_html_e( 'Scegli se l\'extra è abbinabile a un servizio specifico o a tutti.', 'free-bookly' ); ?></small>
+						</div>
+
+						<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+							<div class="fb-form-group">
+								<label for="fb_extra_price"><?php esc_html_e( 'Prezzo Extra (€)', 'free-bookly' ); ?></label>
+								<input type="number" id="fb_extra_price" name="price" min="0" step="0.50" value="<?php echo $extra_to_edit ? esc_attr( number_format( $extra_to_edit->price, 2, '.', '' ) ) : '0.00'; ?>">
+							</div>
+
+							<div class="fb-form-group">
+								<label for="fb_extra_duration"><?php esc_html_e( 'Durata Extra (min)', 'free-bookly' ); ?></label>
+								<input type="number" id="fb_extra_duration" name="duration" min="0" step="5" value="<?php echo $extra_to_edit ? esc_attr( $extra_to_edit->duration ) : '0'; ?>">
+							</div>
+						</div>
+
+						<div class="fb-form-group">
+							<label for="fb_extra_status"><?php esc_html_e( 'Stato', 'free-bookly' ); ?></label>
+							<select id="fb_extra_status" name="status" style="width: 100%;">
+								<option value="active" <?php selected( $extra_to_edit ? $extra_to_edit->status : 'active', 'active' ); ?>><?php esc_html_e( 'Attivo', 'free-bookly' ); ?></option>
+								<option value="inactive" <?php selected( $extra_to_edit ? $extra_to_edit->status : '', 'inactive' ); ?>><?php esc_html_e( 'Disattivato', 'free-bookly' ); ?></option>
+							</select>
+						</div>
+
+						<div class="fb-form-actions" style="margin-top: 16px;">
+							<button type="submit" id="fb_save_extra_btn" class="button button-primary"><?php echo $extra_to_edit ? esc_html__( 'Aggiorna Extra', 'free-bookly' ) : esc_html__( 'Salva Servizio Extra', 'free-bookly' ); ?></button>
+							<?php if ( $extra_to_edit ) : ?>
+								<a href="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-services&view=extras' ) ); ?>" class="button"><?php esc_html_e( 'Annulla', 'free-bookly' ); ?></a>
+							<?php endif; ?>
+						</div>
+					</form>
+				</div>
+			</div>
+
+			<!-- Tabella Extra -->
+			<div class="fb-col-table">
+				<div class="fb-card">
+					<h2><?php esc_html_e( 'Servizi Extra & Add-ons Configurati', 'free-bookly' ); ?></h2>
+					<table class="wp-list-table widefat striped fb-admin-table">
+						<thead>
+							<tr>
+								<th style="width: 50px;">ID</th>
+								<th><?php esc_html_e( 'Titolo Extra', 'free-bookly' ); ?></th>
+								<th><?php esc_html_e( 'Servizio Collegato', 'free-bookly' ); ?></th>
+								<th style="width: 110px;"><?php esc_html_e( 'Prezzo Extra', 'free-bookly' ); ?></th>
+								<th style="width: 110px;"><?php esc_html_e( 'Durata Extra', 'free-bookly' ); ?></th>
+								<th style="width: 90px; text-align: center;"><?php esc_html_e( 'Stato', 'free-bookly' ); ?></th>
+								<th style="width: 130px; text-align: center;"><?php esc_html_e( 'Azioni', 'free-bookly' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php if ( empty( $extras_list ) ) : ?>
+								<tr>
+									<td colspan="7"><?php esc_html_e( 'Nessun servizio extra registrato. Usa il modulo a sinistra per aggiungerne uno.', 'free-bookly' ); ?></td>
+								</tr>
+							<?php else : ?>
+								<?php foreach ( $extras_list as $ex ) : ?>
+									<tr>
+										<td><?php echo esc_html( $ex->id ); ?></td>
+										<td><strong><?php echo esc_html( $ex->title ); ?></strong></td>
+										<td>
+											<span class="fb-badge fb-badge-secondary">
+												<?php echo esc_html( $ex->get_service_name() ); ?>
+											</span>
+										</td>
+										<td><strong>+<?php echo esc_html( $ex->get_formatted_price() ); ?></strong></td>
+										<td>+<?php echo esc_html( $ex->duration ); ?> min</td>
+										<td style="text-align: center;">
+											<?php if ( 'active' === $ex->status ) : ?>
+												<span class="fb-badge" style="background: #dcfce7; color: #15803d;"><?php esc_html_e( 'Attivo', 'free-bookly' ); ?></span>
+											<?php else : ?>
+												<span class="fb-badge" style="background: #f1f5f9; color: #64748b;"><?php esc_html_e( 'Disattivo', 'free-bookly' ); ?></span>
+											<?php endif; ?>
+										</td>
+										<td style="text-align: center;">
+											<a href="<?php echo esc_url( admin_url( 'admin.php?page=free-bookly-services&view=extras&edit_extra=' . $ex->id ) ); ?>" class="button button-small"><?php esc_html_e( 'Modifica', 'free-bookly' ); ?></a>
+											<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=free-bookly-services&view=extras&action=fb_delete_service_extra&extra_id=' . $ex->id ), 'fb_delete_service_extra_action' ) ); ?>" class="button button-small fb-btn-delete" onclick="return confirm('<?php esc_attr_e( 'Eliminare questo servizio extra?', 'free-bookly' ); ?>');"><?php esc_html_e( 'Elimina', 'free-bookly' ); ?></a>
 										</td>
 									</tr>
 								<?php endforeach; ?>

@@ -5,7 +5,7 @@
  */
 class Free_Bookly_Activator {
 
-	const DB_VERSION = '1.2.0';
+	const DB_VERSION = '1.4.0';
 
 	/**
 	 * Crea le tabelle del database necessarie al primo avvio o aggiornamento.
@@ -59,6 +59,11 @@ class Free_Bookly_Activator {
 		}
 
 		// 2. Impostazioni aziendali di default
+		if ( false === get_option( 'free_bookly_active_modules' ) ) {
+			// Notifiche email, servizi extra e campi personalizzati attivi di default
+			update_option( 'free_bookly_active_modules', array( 'email_notifications', 'service_extras', 'custom_fields' ) );
+		}
+
 		if ( false === get_option( 'fb_company_name' ) ) {
 			update_option( 'fb_company_name', get_bloginfo( 'name' ) );
 		}
@@ -184,6 +189,8 @@ class Free_Bookly_Activator {
 			start_date datetime NOT NULL,
 			end_date datetime NOT NULL,
 			status varchar(50) NOT NULL DEFAULT 'pending',
+			custom_fields text DEFAULT '' NOT NULL,
+			extras_price decimal(10,2) DEFAULT 0.00 NOT NULL,
 			PRIMARY KEY  (id),
 			KEY staff_id (staff_id),
 			KEY customer_id (customer_id)
@@ -221,6 +228,43 @@ class Free_Bookly_Activator {
 			repeat_yearly tinyint(1) DEFAULT 0 NOT NULL,
 			PRIMARY KEY  (id),
 			KEY staff_date (staff_id, holiday_date)
+		) $charset_collate;";
+
+		// Service Extras Table (Add-ons)
+		$schema[] = "CREATE TABLE {$prefix}fb_service_extras (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			service_id bigint(20) DEFAULT 0 NOT NULL,
+			title varchar(255) NOT NULL,
+			price decimal(10,2) NOT NULL DEFAULT 0.00,
+			duration int(11) NOT NULL DEFAULT 0,
+			status varchar(20) DEFAULT 'active' NOT NULL,
+			PRIMARY KEY  (id),
+			KEY service_id (service_id)
+		) $charset_collate;";
+
+		// Custom Fields Table
+		$schema[] = "CREATE TABLE {$prefix}fb_custom_fields (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			label varchar(255) NOT NULL,
+			field_type varchar(50) NOT NULL DEFAULT 'text',
+			options text DEFAULT '' NOT NULL,
+			is_required tinyint(1) DEFAULT 0 NOT NULL,
+			service_id bigint(20) DEFAULT 0 NOT NULL,
+			sort_order int(11) DEFAULT 0 NOT NULL,
+			PRIMARY KEY  (id),
+			KEY service_id (service_id)
+		) $charset_collate;";
+
+		// Appointment Extras Pivot Table
+		$schema[] = "CREATE TABLE {$prefix}fb_appointment_extras (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			appointment_id bigint(20) NOT NULL,
+			extra_id bigint(20) NOT NULL,
+			title varchar(255) NOT NULL,
+			price decimal(10,2) NOT NULL DEFAULT 0.00,
+			duration int(11) NOT NULL DEFAULT 0,
+			PRIMARY KEY  (id),
+			KEY appointment_id (appointment_id)
 		) $charset_collate;";
 
 		return $schema;

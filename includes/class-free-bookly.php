@@ -81,10 +81,30 @@ class Free_Bookly {
 
 	private function init_module_manager() {
 		$this->module_manager = new Free_Bookly_Module_Manager();
-		
-		// Qui si registrerebbero i moduli se esistessero
-		// es: $this->module_manager->register_module('stripe_payments', array(...));
-		
+
+		$plugin_path = plugin_dir_path( dirname( __FILE__ ) );
+
+		// Modulo 1: Notifiche Email & Calendario (.ics)
+		$this->module_manager->register_module( 'email_notifications', array(
+			'name'       => 'Notifiche Email & Calendario',
+			'class_file' => $plugin_path . 'includes/modules/class-fb-email-notifications.php',
+			'class_name' => 'FB_Email_Notifications',
+		) );
+
+		// Modulo 4a: Servizi Extra & Add-ons
+		$this->module_manager->register_module( 'service_extras', array(
+			'name'       => 'Servizi Extra & Add-ons',
+			'class_file' => $plugin_path . 'includes/modules/class-fb-service-extras-module.php',
+			'class_name' => 'FB_Service_Extras_Module',
+		) );
+
+		// Modulo 4b: Campi Personalizzati (Custom Fields)
+		$this->module_manager->register_module( 'custom_fields', array(
+			'name'       => 'Campi Personalizzati',
+			'class_file' => $plugin_path . 'includes/modules/class-fb-custom-fields-module.php',
+			'class_name' => 'FB_Custom_Fields_Module',
+		) );
+
 		$this->module_manager->load_active_modules();
 	}
 

@@ -20,29 +20,38 @@ document.addEventListener('DOMContentLoaded', function() {
 			service_id: preServiceId || null,
 			service_title: '',
 			service_price: '',
+			service_price_num: 0,
+			service_duration_num: 60,
+			extras: [],
+			extras_duration: 0,
+			extras_price: 0,
 			category_id: preCategoryId || null,
 			staff_id: preStaffId,
 			staff_name: 'Qualsiasi collaboratore disponibile',
 			date: null,
 			time: null,
-			user: { name: '', email: '', phone: '' }
+			user: { name: '', email: '', phone: '' },
+			custom_fields: []
 		};
 
 		let allCategories = [];
 		let allServices = [];
 		let allStaff = [];
 
-		const categorySelect = container.querySelector('#fb-category-select');
-		const serviceSelect  = container.querySelector('#fb-service-select');
-		const staffSelect    = container.querySelector('#fb-staff-select');
-		const categoryInfo   = container.querySelector('#fb-category-info');
-		const serviceInfo    = container.querySelector('#fb-service-info');
-		const staffInfo      = container.querySelector('#fb-staff-info');
-		const datePicker     = container.querySelector('#fb-date-picker');
-		const timeSlotsDiv   = container.querySelector('#fb-time-slots');
-		const btnToStep2     = container.querySelector('#btn-to-step-2');
-		const btnToStep3     = container.querySelector('#btn-to-step-3');
-		const btnConfirm     = container.querySelector('#fb-confirm-btn');
+		const categorySelect       = container.querySelector('#fb-category-select');
+		const serviceSelect        = container.querySelector('#fb-service-select');
+		const staffSelect          = container.querySelector('#fb-staff-select');
+		const categoryInfo         = container.querySelector('#fb-category-info');
+		const serviceInfo          = container.querySelector('#fb-service-info');
+		const staffInfo            = container.querySelector('#fb-staff-info');
+		const extrasContainer      = container.querySelector('#fb-extras-container');
+		const extrasList           = container.querySelector('#fb-extras-list');
+		const customFieldsContainer = container.querySelector('#fb-custom-fields-container');
+		const datePicker           = container.querySelector('#fb-date-picker');
+		const timeSlotsDiv         = container.querySelector('#fb-time-slots');
+		const btnToStep2           = container.querySelector('#btn-to-step-2');
+		const btnToStep3           = container.querySelector('#btn-to-step-3');
+		const btnConfirm           = container.querySelector('#fb-confirm-btn');
 
 		// Carica Categorie e Servizi
 		loadCategories();
@@ -93,11 +102,15 @@ document.addEventListener('DOMContentLoaded', function() {
 							opt.textContent = `${s.title} (${s.duration} min - ${s.formatted_price})`;
 							opt.setAttribute('data-info', s.info || '');
 							opt.setAttribute('data-price', s.formatted_price || '');
+							opt.setAttribute('data-price-num', s.price || '0');
+							opt.setAttribute('data-duration', s.duration || '60');
 							if (preServiceId === s.id) {
 								opt.selected = true;
 								bookingData.service_id = s.id;
 								bookingData.service_title = opt.textContent;
 								bookingData.service_price = s.formatted_price;
+								bookingData.service_price_num = parseFloat(s.price) || 0;
+								bookingData.service_duration_num = parseInt(s.duration, 10) || 60;
 								if (btnToStep2) btnToStep2.removeAttribute('disabled');
 							}
 							serviceSelect.appendChild(opt);
@@ -105,6 +118,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 						if (bookingData.service_id) {
 							loadStaff(bookingData.service_id);
+							loadExtras(bookingData.service_id);
+							loadCustomFields(bookingData.service_id);
 						}
 					}
 				})
@@ -142,6 +157,215 @@ document.addEventListener('DOMContentLoaded', function() {
 				.catch(e => console.error('Errore staff:', e));
 		}
 
+		function loadExtras(serviceId) {
+			if (!extrasContainer || !extrasList) return;
+			extrasList.innerHTML = '';
+			bookingData.extras = [];
+			bookingData.extras_duration = 0;
+			bookingData.extras_price = 0;
+
+			const data = new FormData();
+			data.append('action', 'fb_get_service_extras');
+			data.append('nonce', fb_ajax.nonce);
+			data.append('service_id', serviceId);
+
+			fetch(fb_ajax.ajax_url, { method: 'POST', body: data })
+				.then(r => r.json())
+				.then(res => {
+					if (res.success && res.data && res.data.length > 0) {
+						extrasContainer.style.display = 'block';
+						res.data.forEach(ex => {
+							const label = document.createElement('label');
+							label.style.display = 'flex';
+							label.style.alignItems = 'center';
+							label.style.gap = '8px';
+							label.style.padding = '8px 12px';
+							label.style.background = '#f8fafc';
+							label.style.border = '1px solid #e2e8f0';
+							label.style.borderRadius = '6px';
+							label.style.cursor = 'pointer';
+
+							const cb = document.createElement('input');
+							cb.type = 'checkbox';
+							cb.value = ex.id;
+							cb.setAttribute('data-title', ex.title);
+							cb.setAttribute('data-price', ex.price);
+							cb.setAttribute('data-duration', ex.duration);
+
+							cb.addEventListener('change', function() {
+								recalcExtras();
+							});
+
+							const span = document.createElement('span');
+							const durText = ex.duration > 0 ? ` (+${ex.duration} min)` : '';
+							span.innerHTML = `<strong>${ex.title}</strong> &bull; +${ex.formatted_price}${durText}`;
+
+							label.appendChild(cb);
+							label.appendChild(span);
+							extrasList.appendChild(label);
+						});
+					} else {
+						extrasContainer.style.display = 'none';
+					}
+				})
+				.catch(e => console.error('Errore extra:', e));
+		}
+
+		function recalcExtras() {
+			if (!extrasList) return;
+			const selected = [];
+			let extraDur = 0;
+			let extraPrc = 0;
+
+			extrasList.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+				const id = parseInt(cb.value, 10);
+				const title = cb.getAttribute('data-title');
+				const price = parseFloat(cb.getAttribute('data-price')) || 0;
+				const dur = parseInt(cb.getAttribute('data-duration'), 10) || 0;
+				selected.push({ id: id, title: title, price: price, duration: dur });
+				extraDur += dur;
+				extraPrc += price;
+			});
+
+			bookingData.extras = selected;
+			bookingData.extras_duration = extraDur;
+			bookingData.extras_price = extraPrc;
+
+			// Ricalcola slot se la data è già selezionata
+			if (bookingData.date && datePicker && typeof datePicker.dispatchEvent === 'function') {
+				datePicker.dispatchEvent(new Event('change'));
+			}
+		}
+
+		function loadCustomFields(serviceId) {
+			if (!customFieldsContainer) return;
+			customFieldsContainer.innerHTML = '';
+
+			const data = new FormData();
+			data.append('action', 'fb_get_custom_fields');
+			data.append('nonce', fb_ajax.nonce);
+			data.append('service_id', serviceId);
+
+			fetch(fb_ajax.ajax_url, { method: 'POST', body: data })
+				.then(r => r.json())
+				.then(res => {
+					if (res.success && res.data && res.data.length > 0) {
+						const title = document.createElement('h4');
+						title.textContent = 'Informazioni Aggiuntive';
+						title.style.margin = '16px 0 10px 0';
+						title.style.fontSize = '14px';
+						title.style.color = '#334155';
+						customFieldsContainer.appendChild(title);
+
+						res.data.forEach(f => {
+							const block = document.createElement('div');
+							block.className = 'fb-field-block';
+							block.style.marginBottom = '12px';
+
+							const reqMark = f.is_required ? ' *' : '';
+							const labelEl = document.createElement('label');
+							labelEl.innerHTML = `<strong>${f.label}${reqMark}</strong>`;
+							labelEl.style.display = 'block';
+							labelEl.style.marginBottom = '4px';
+							block.appendChild(labelEl);
+
+							if (f.field_type === 'text') {
+								const inp = document.createElement('input');
+								inp.type = 'text';
+								inp.setAttribute('type', 'text');
+								inp.className = 'fb-cf-input';
+								inp.setAttribute('data-cf-id', f.id);
+								inp.setAttribute('data-cf-label', f.label);
+								inp.setAttribute('data-cf-type', f.field_type);
+								inp.setAttribute('data-required', f.is_required);
+								inp.placeholder = f.label;
+								block.appendChild(inp);
+							} else if (f.field_type === 'textarea') {
+								const ta = document.createElement('textarea');
+								ta.className = 'fb-cf-input';
+								ta.rows = 3;
+								ta.setAttribute('data-cf-id', f.id);
+								ta.setAttribute('data-cf-label', f.label);
+								ta.setAttribute('data-cf-type', f.field_type);
+								ta.setAttribute('data-required', f.is_required);
+								ta.placeholder = f.label;
+								block.appendChild(ta);
+							} else if (f.field_type === 'select') {
+								const sel = document.createElement('select');
+								sel.className = 'fb-cf-input';
+								sel.setAttribute('data-cf-id', f.id);
+								sel.setAttribute('data-cf-label', f.label);
+								sel.setAttribute('data-cf-type', f.field_type);
+								sel.setAttribute('data-required', f.is_required);
+								sel.innerHTML = '<option value="">-- Seleziona un\'opzione --</option>';
+								(f.options_array || []).forEach(opt => {
+									const o = document.createElement('option');
+									o.value = opt;
+									o.textContent = opt;
+									sel.appendChild(o);
+								});
+								block.appendChild(sel);
+							} else if (f.field_type === 'radio') {
+								const radioGroup = document.createElement('div');
+								radioGroup.style.display = 'flex';
+								radioGroup.style.flexDirection = 'column';
+								radioGroup.style.gap = '6px';
+								(f.options_array || []).forEach(opt => {
+									const rLab = document.createElement('label');
+									rLab.style.display = 'flex';
+									rLab.style.alignItems = 'center';
+									rLab.style.gap = '6px';
+									rLab.style.cursor = 'pointer';
+
+									const rad = document.createElement('input');
+									rad.type = 'radio';
+									rad.name = `fb_cf_${f.id}`;
+									rad.value = opt;
+									rad.className = 'fb-cf-input';
+									rad.setAttribute('data-cf-id', f.id);
+									rad.setAttribute('data-cf-label', f.label);
+									rad.setAttribute('data-cf-type', f.field_type);
+									rad.setAttribute('data-required', f.is_required);
+
+									const rText = document.createElement('span');
+									rText.textContent = opt;
+
+									rLab.appendChild(rad);
+									rLab.appendChild(rText);
+									radioGroup.appendChild(rLab);
+								});
+								block.appendChild(radioGroup);
+							} else if (f.field_type === 'checkbox') {
+								const cbLab = document.createElement('label');
+								cbLab.style.display = 'flex';
+								cbLab.style.alignItems = 'center';
+								cbLab.style.gap = '6px';
+								cbLab.style.cursor = 'pointer';
+
+								const cb = document.createElement('input');
+								cb.type = 'checkbox';
+								cb.className = 'fb-cf-input';
+								cb.setAttribute('data-cf-id', f.id);
+								cb.setAttribute('data-cf-label', f.label);
+								cb.setAttribute('data-cf-type', f.field_type);
+								cb.setAttribute('data-required', f.is_required);
+
+								const cbText = document.createElement('span');
+								cbText.textContent = f.label + reqMark;
+
+								cbLab.appendChild(cb);
+								cbLab.appendChild(cbText);
+								block.innerHTML = '';
+								block.appendChild(cbLab);
+							}
+
+							customFieldsContainer.appendChild(block);
+						});
+					}
+				})
+				.catch(e => console.error('Errore custom fields:', e));
+		}
+
 		// Eventi di cambio
 		if (categorySelect) {
 			categorySelect.addEventListener('change', function() {
@@ -167,6 +391,11 @@ document.addEventListener('DOMContentLoaded', function() {
 				const opt = this.options[this.selectedIndex];
 				bookingData.service_title = opt ? opt.textContent : '';
 				bookingData.service_price = opt ? opt.getAttribute('data-price') : '';
+				bookingData.service_price_num = opt ? parseFloat(opt.getAttribute('data-price-num') || '0') : 0;
+				bookingData.service_duration_num = opt ? parseInt(opt.getAttribute('data-duration') || '60', 10) : 60;
+				bookingData.extras = [];
+				bookingData.extras_duration = 0;
+				bookingData.extras_price = 0;
 
 				if (serviceInfo) {
 					const info = opt ? opt.getAttribute('data-info') : '';
@@ -186,7 +415,14 @@ document.addEventListener('DOMContentLoaded', function() {
 					}
 				}
 
-				loadStaff(sId);
+				if (sId) {
+					loadStaff(sId);
+					loadExtras(sId);
+					loadCustomFields(sId);
+				} else {
+					if (extrasContainer) extrasContainer.style.display = 'none';
+					if (customFieldsContainer) customFieldsContainer.innerHTML = '';
+				}
 			});
 		}
 
@@ -260,6 +496,53 @@ document.addEventListener('DOMContentLoaded', function() {
 					alert('Nome ed email sono campi obbligatori.');
 					return false;
 				}
+
+				// Validazione Campi Personalizzati Dinamici
+				const cfValues = [];
+				if (customFieldsContainer) {
+					const processedRadio = new Set();
+					const inputs = customFieldsContainer.querySelectorAll('.fb-cf-input');
+
+					for (let i = 0; i < inputs.length; i++) {
+						const el = inputs[i];
+						const cfId = el.getAttribute('data-cf-id');
+						const cfLabel = el.getAttribute('data-cf-label') || 'Campo';
+						const cfType = el.getAttribute('data-cf-type');
+						const isReq = el.getAttribute('data-required') === '1';
+
+						if (cfType === 'radio') {
+							if (processedRadio.has(cfId)) continue;
+							processedRadio.add(cfId);
+							const checked = customFieldsContainer.querySelector(`input[name="fb_cf_${cfId}"]:checked`);
+							if (isReq && !checked) {
+								alert(`Il campo obbligatorio "${cfLabel}" deve essere selezionato.`);
+								return false;
+							}
+							if (checked) {
+								cfValues.push({ id: cfId, label: cfLabel, value: checked.value });
+							}
+						} else if (cfType === 'checkbox') {
+							if (isReq && !el.checked) {
+								alert(`È necessario spuntare la casella obbligatoria "${cfLabel}".`);
+								return false;
+							}
+							if (el.checked) {
+								cfValues.push({ id: cfId, label: cfLabel, value: 'Sì' });
+							}
+						} else {
+							const val = el.value.trim();
+							if (isReq && !val) {
+								alert(`Il campo obbligatorio "${cfLabel}" non può essere vuoto.`);
+								el.focus();
+								return false;
+							}
+							if (val) {
+								cfValues.push({ id: cfId, label: cfLabel, value: val });
+							}
+						}
+					}
+				}
+				bookingData.custom_fields = cfValues;
 			}
 			return true;
 		}
@@ -279,6 +562,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				data.append('service_id', bookingData.service_id);
 				data.append('staff_id', bookingData.staff_id || 'any');
 				data.append('date', bookingData.date);
+				data.append('extras_duration', bookingData.extras_duration || 0);
 
 				fetch(fb_ajax.ajax_url, { method: 'POST', body: data })
 					.then(r => r.json())
@@ -323,11 +607,31 @@ document.addEventListener('DOMContentLoaded', function() {
 			const summaryDiv = container.querySelector('#fb-summary');
 			if (!summaryDiv) return;
 
+			let extrasHtml = '';
+			if (bookingData.extras && bookingData.extras.length > 0) {
+				const extraNames = bookingData.extras.map(e => `${e.title} (+€${e.price.toFixed(2)}${e.duration ? ', +' + e.duration + 'm' : ''})`).join(', ');
+				const totalDur = (bookingData.service_duration_num || 60) + (bookingData.extras_duration || 0);
+				const totalPrc = (bookingData.service_price_num || 0) + (bookingData.extras_price || 0);
+				extrasHtml = `
+					<div style="margin-bottom: 8px;"><strong>Extra Selezionati:</strong> ${extraNames}</div>
+					<div style="margin-bottom: 8px;"><strong>Durata Totale:</strong> ${totalDur} min</div>
+					<div style="margin-bottom: 8px;"><strong>Prezzo Totale:</strong> € ${totalPrc.toFixed(2)}</div>
+				`;
+			}
+
+			let cfHtml = '';
+			if (bookingData.custom_fields && bookingData.custom_fields.length > 0) {
+				const cfLines = bookingData.custom_fields.map(cf => `<div>&bull; <strong>${cf.label}:</strong> ${cf.value}</div>`).join('');
+				cfHtml = `<div style="margin-bottom: 8px; margin-top: 6px;"><strong>Dettagli Aggiuntivi:</strong><div style="padding-left: 8px; margin-top: 4px;">${cfLines}</div></div>`;
+			}
+
 			summaryDiv.innerHTML = `
 				<div style="margin-bottom: 8px;"><strong>Servizio:</strong> ${bookingData.service_title}</div>
 				<div style="margin-bottom: 8px;"><strong>Collaboratore:</strong> ${bookingData.staff_name}</div>
 				<div style="margin-bottom: 8px;"><strong>Data e Ora:</strong> ${bookingData.date} alle ${bookingData.time}</div>
+				${extrasHtml}
 				<div style="margin-bottom: 8px;"><strong>Cliente:</strong> ${bookingData.user.name} &bull; ${bookingData.user.email} ${bookingData.user.phone ? ' &bull; ' + bookingData.user.phone : ''}</div>
+				${cfHtml}
 			`;
 		}
 
@@ -524,6 +828,10 @@ document.addEventListener('DOMContentLoaded', function() {
 						<select id="fb-service-select" required><option value="">-- Seleziona un Servizio --</option></select>
 						<div id="fb-service-info" class="fb-info-box" style="display:none;"></div>
 					</div>
+					<div id="fb-extras-container" class="fb-field-block" style="display:none; margin-top: 14px;">
+						<label><strong>Servizi Extra Opzionali</strong></label>
+						<div id="fb-extras-list" style="margin-top: 6px; display: flex; flex-direction: column; gap: 6px;"></div>
+					</div>
 					<div class="fb-field-block" style="margin-top: 14px;">
 						<label for="fb-staff-select"><strong>Collaboratore</strong></label>
 						<select id="fb-staff-select"><option value="any">Qualsiasi collaboratore disponibile</option></select>
@@ -558,6 +866,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					<div class="fb-field-block" style="margin-bottom: 12px;">
 						<input type="tel" id="fb-user-phone" placeholder="Numero di Telefono" />
 					</div>
+					<div id="fb-custom-fields-container" style="margin-top: 14px;"></div>
 					<div style="margin-top: 20px; display: flex; gap: 10px;">
 						<button class="fb-btn fb-btn-secondary fb-prev-step" data-target="2">Indietro</button>
 						<button class="fb-btn fb-next-step" data-target="4" id="btn-to-step-4">Avanti</button>

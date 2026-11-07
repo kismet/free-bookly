@@ -2,7 +2,7 @@
 
 **Autore:** Stefano Lenzi  
 **Licenza:** GPL-2.0+  
-**Versione:** 1.2.0 (Open Source)
+**Versione:** 1.4.0 (Open Source)
 
 Benvenuto in **Free Bookly**, l'alternativa Open Source completa, modulare e ad alte prestazioni a Bookly Pro per la gestione professionale delle prenotazioni e degli appuntamenti su WordPress.
 
@@ -32,15 +32,18 @@ L'installazione su un sito WordPress in produzione o staging richiede meno di un
 6. Al termine del caricamento, clicca su **Attiva plugin**.
 
 ### Cosa accade automaticamente all'attivazione:
-* Vengono create o migrate in modo trasparente le tabelle dedicate e indicizzate nel database:
+* Vengono create o migrate in modo trasparente le 11 tabelle dedicate e indicizzate nel database:
   * `wp_fb_categories` (Categorie di servizi)
   * `wp_fb_services` (Servizi con durata, buffer time, colore, regole fornitore e visibilità)
+  * `wp_fb_service_extras` (Servizi extra e add-ons opzionali con prezzo e durata addizionali)
+  * `wp_fb_custom_fields` (Campi personalizzati per raccogliere dati addizionali dal cliente)
+  * `wp_fb_appointment_extras` (Extra associati a ciascuna prenotazione)
   * `wp_fb_staff` (Collaboratori con avatar, colore, visibilità e stato attivo/archiviato)
   * `wp_fb_staff_services` (Associazione servizi, prezzi personalizzati)
   * `wp_fb_staff_schedule` (Orari di turno settimanali e pause individuali)
   * `wp_fb_holidays` (Festività aziendali e giorni di ferie staff, con ricorrenza annuale)
   * `wp_fb_customers` (Anagrafica clienti)
-  * `wp_fb_appointments` (Prenotazioni e storico appuntamenti)
+  * `wp_fb_appointments` (Prenotazioni, extra, campi personalizzati e storico)
 * Vengono inizializzate le impostazioni aziendali e la categoria predefinita.
 * Nel menu principale di WordPress compare la voce **Free Bookly** con tutte le sue sezioni di controllo.
 
@@ -49,8 +52,8 @@ L'installazione su un sito WordPress in produzione o staging richiede meno di un
 ## 3. Configurazione Completa (Parità Bookly Pro)
 
 ### 3.1 Impostazioni Generali & Aziendali (Free Bookly > Impostazioni)
-Il pannello impostazioni è organizzato in 5 schede specializzate:
-1. **Azienda:** Configura Nome attività, Telefono, Sito web, Indirizzo sede ed Email di notifica.
+Il pannello impostazioni è organizzato in 7 schede specializzate:
+1. **Azienda:** Configura Nome attività, Telefono, Logo, Indirizzo sede ed Email di notifica.
 2. **Generale:**
    * **Dimensione Fascia Oraria Standard (Time Slot Length):** Intervallo di inizio prenotabile (es. 15, 30, 45, 60 minuti).
    * **Stato Predefinito:** Determina se i nuovi appuntamenti sono subito approvati (*Approved*) o in attesa di revisione (*Pending*).
@@ -58,17 +61,14 @@ Il pannello impostazioni è organizzato in 5 schede specializzate:
 3. **Orari Lavorativi Aziendali:** Orari di apertura predefiniti per ogni giorno della settimana con inizio, fine e pausa pranzo predefinita. Ereditati automaticamente da tutti i collaboratori.
 4. **Giorni Festivi Aziendali:** Aggiungi date di chiusura (es. Natale, Ferragosto, ponti) con opzione di ripetizione annuale. In queste date tutte le prenotazioni sono bloccate per l'intera azienda.
 5. **Pagamenti & Valuta:** Selezione valuta (EUR, USD, GBP, CHF, CAD, AUD) e formato di visualizzazione del prezzo (`{price} €` o `€ {price}`).
+6. **Notifiche Email (Modulo 1):** Configurazione mittente, abilitazione notifiche (cliente e staff per creazione, approvazione e cancellazione), modelli HTML responsive con segnaposto e allegato di calendario RFC 5545 `.ics`. Include pulsante di test e registro delle email inviate.
+7. **Campi Personalizzati (Modulo 4):** Configura campi aggiuntivi nel form di contatto (testo, textarea, menu a tendina, radio button, caselle di spunta) con indicazione di obbligatorietà e collegamento a tutti i servizi o a un servizio specifico.
 
-### 3.2 Categorie & Servizi Avanzati (Free Bookly > Servizi)
-* **Gestione Categorie:** Clicca su *Gestisci Categorie* per creare raggruppamenti (es. *Cura dei Capelli*, *Estetica Viso*, *Massaggi*).
+### 3.2 Categorie, Servizi & Servizi Extra (Free Bookly > Servizi)
+* **Gestione Categorie:** Crea raggruppamenti (es. *Cura dei Capelli*, *Estetica Viso*, *Massaggi*).
 * **Buffer Time (Margine Cuscinetto):** Imposta un tempo di preparazione prima (*Buffer Before*) o di igienizzazione/riordino dopo (*Buffer After*) l'appuntamento. Il motore di disponibilità blocca automaticamente gli orari sovrapposti.
-* **Regola Collaboratore Casuale / "Qualsiasi":** Scegli come assegnare la prenotazione quando il cliente seleziona "Qualsiasi collaboratore":
-  * *Casuale tra i disponibili*
-  * *Primo in ordine di elenco*
-  * *Meno occupato nella giornata*
-  * *Più economico* (in base al prezzo personalizzato)
-* **Visibilità:** *Pubblico* (visibile a tutti i clienti) o *Privato* (prenotabile solo dall'amministratore).
-* **Colore Identificativo:** Colore personalizzato visualizzato nel calendario e nei badge frontend.
+* **Regola Collaboratore Casuale / "Qualsiasi":** Scegli come assegnare la prenotazione quando il cliente seleziona "Qualsiasi collaboratore" (*Casuale*, *Primo in elenco*, *Meno occupato*, *Più economico*).
+* **Servizi Extra & Add-ons (Modulo 4):** Aggiungi trattamenti o opzioni supplementari che il cliente può selezionare nel wizard. Ogni extra incrementa il prezzo complessivo e/o la durata del servizio, ricalcolando automaticamente la disponibilità degli slot orari.
 
 ### 3.3 Gestione Collaboratori & Ferie Staff (Free Bookly > Staff)
 * **Profilo Completo:** Nome, Email, Telefono, Avatar, Colore badge, Descrizione e collegamento facoltativo all'utente WordPress.
@@ -83,7 +83,7 @@ Il pannello impostazioni è organizzato in 5 schede specializzate:
 Free Bookly supporta nativamente 4 tipologie di interfaccia di prenotazione:
 
 ### Form 1: Classic Step-by-Step Wizard
-Il classico flusso di prenotazione guidato in 4 step, arricchito con filtro categorie e opzione "Qualsiasi collaboratore":
+Il classico flusso di prenotazione guidato in 4 step, arricchito con filtro categorie, selezione extra opzionali, campi personalizzati e riepilogo dettagliato:
 ```text
 [free_bookly]
 oppure
@@ -120,8 +120,9 @@ oppure
 
 Accedendo a **Free Bookly > Calendario**:
 * Filtro immediato per stato (*In Attesa*, *Confermati*, *Annullati*), collaboratore e servizio.
-* Azioni rapide con un click: **Approva**, **Annulla** o **Elimina**.
-* Informazioni complete su cliente, data, ora, durata e prezzo.
+* Visualizzazione dettagliata degli extra selezionati con badge di prezzo e calcolo del totale complessivo.
+* Visualizzazione dei campi personalizzati compilati dal cliente.
+* Azioni rapide con un click: **Approva** (invia notifica email al cliente con file `.ics` aggiornato), **Annulla** (invia notifica di cancellazione con evento calendario annullato) o **Elimina**.
 
 ---
 
@@ -129,4 +130,4 @@ Accedendo a **Free Bookly > Calendario**:
 
 Free Bookly implementa un ciclo di vita conforme agli standard WordPress:
 * **Disattivazione temporanea:** Tutti i dati e le impostazioni rimangono preservati nel database.
-* **Eliminazione definitiva:** Viene eseguito [`uninstall.php`](file:///c:/Users/stefy/Progetti/free-bookly/uninstall.php), che rimuove tutte le 8 tabelle `wp_fb_*` e tutte le opzioni registrate, lasciando l'installazione di WordPress completamente pulita.
+* **Eliminazione definitiva:** Viene eseguito [`uninstall.php`](file:///c:/Users/stefy/Progetti/free-bookly/uninstall.php), che rimuove tutte le 11 tabelle `wp_fb_*` e tutte le opzioni registrate, lasciando l'installazione di WordPress completamente pulita.

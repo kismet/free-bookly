@@ -49,8 +49,18 @@ class Free_Bookly_Module_Manager {
 	 * Controlla se un modulo è attivo.
 	 */
 	public function is_active( $id ) {
+		return self::is_module_active( $id );
+	}
+
+	/**
+	 * Helper statico per verificare rapidamente se un modulo è attivo.
+	 *
+	 * @param string $id
+	 * @return bool
+	 */
+	public static function is_module_active( $id ) {
 		$active_modules = get_option( 'free_bookly_active_modules', array() );
-		return in_array( $id, $active_modules );
+		return is_array( $active_modules ) && in_array( $id, $active_modules, true );
 	}
 
 	/**

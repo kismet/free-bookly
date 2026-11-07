@@ -13,9 +13,10 @@ class FB_Availability {
 	 * @param int $service_id ID del servizio richiesto
 	 * @param mixed $staff_id ID del membro dello staff (int) o 'any'/0
 	 * @param string $date Data nel formato 'Y-m-d'
+	 * @param int $custom_duration Durata personalizzata in minuti (inclusi eventuali extra)
 	 * @return array Array di slot disponibili ordinati (es. ['09:00', '09:15', '09:30', ...])
 	 */
-	public function get_available_slots( $service_id, $staff_id, $date ) {
+	public function get_available_slots( $service_id, $staff_id, $date, $custom_duration = 0 ) {
 		require_once dirname( __FILE__ ) . '/class-fb-service.php';
 		require_once dirname( __FILE__ ) . '/class-fb-staff.php';
 		require_once dirname( __FILE__ ) . '/class-fb-staff-schedule.php';
@@ -45,7 +46,7 @@ class FB_Availability {
 
 			$merged_slots = array();
 			foreach ( $staff_list as $member ) {
-				$slots = $this->get_staff_slots( $service, $member->id, $date );
+				$slots = $this->get_staff_slots( $service, $member->id, $date, $custom_duration );
 				$merged_slots = array_merge( $merged_slots, $slots );
 			}
 
@@ -54,7 +55,7 @@ class FB_Availability {
 			return $unique_slots;
 		}
 
-		return $this->get_staff_slots( $service, absint( $staff_id ), $date );
+		return $this->get_staff_slots( $service, absint( $staff_id ), $date, $custom_duration );
 	}
 
 	/**
@@ -63,9 +64,10 @@ class FB_Availability {
 	 * @param FB_Service $service
 	 * @param int $staff_id
 	 * @param string $date
+	 * @param int $custom_duration
 	 * @return array
 	 */
-	public function get_staff_slots( $service, $staff_id, $date ) {
+	public function get_staff_slots( $service, $staff_id, $date, $custom_duration = 0 ) {
 		require_once dirname( __FILE__ ) . '/class-fb-holiday.php';
 		require_once dirname( __FILE__ ) . '/class-fb-settings.php';
 
@@ -96,8 +98,8 @@ class FB_Availability {
 		// 3. Recupera appuntamenti esistenti per questo collaboratore in questa data
 		$existing_appointments = $this->get_appointments_for_date( $staff_id, $date );
 
-		// 4. Parametri temporali del servizio
-		$duration_minutes = $service->duration;
+		// 4. Parametri temporali del servizio (con supporto extra)
+		$duration_minutes = ( $custom_duration > 0 ) ? absint( $custom_duration ) : $service->duration;
 		$buffer_before    = absint( $service->buffer_before );
 		$buffer_after     = absint( $service->buffer_after );
 
@@ -190,9 +192,10 @@ class FB_Availability {
 	 * @param int    $service_id
 	 * @param string $date
 	 * @param string $time
+	 * @param int    $custom_duration
 	 * @return int ID del membro dello staff scelto.
 	 */
-	public static function assign_staff_for_any( $service_id, $date, $time ) {
+	public static function assign_staff_for_any( $service_id, $date, $time, $custom_duration = 0 ) {
 		require_once dirname( __FILE__ ) . '/class-fb-service.php';
 		require_once dirname( __FILE__ ) . '/class-fb-staff.php';
 
@@ -217,7 +220,7 @@ class FB_Availability {
 
 		// Filtra solo quelli effettivamente liberi in questo slot
 		foreach ( $candidates as $member ) {
-			$slots = $avail->get_staff_slots( $service, $member->id, $date );
+			$slots = $avail->get_staff_slots( $service, $member->id, $date, $custom_duration );
 			if ( in_array( $time, $slots, true ) ) {
 				$available_staff[] = $member;
 			}

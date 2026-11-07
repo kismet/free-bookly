@@ -234,7 +234,73 @@ const testReportHtml = `
     </div>
   </div>
 
-  <h2>7. Tabella di Confronto Completa: Free Bookly vs Bookly Pro</h2>
+  <h2>7. Modulo 1: Notifiche Email &amp; Calendario .ics (RFC 5545)</h2>
+  <p>Free Bookly include un motore transazionale completo di notifiche email per clienti e staff, integrato con generatore conforme RFC 5545 di file <code>.ics</code> per aggiungere o aggiornare automaticamente l'evento su Google Calendar, Apple Calendar e Outlook.</p>
+  <div class="grid-2">
+    <div class="screenshot-card">
+      <img src="${getImageBase64('50-modules-email-active.png')}" alt="Modulo Notifiche Email Attivo">
+      <div class="screenshot-caption">Figura 18: Gestione Moduli con "Notifiche Email &amp; Calendario .ics" abilitato.</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="${getImageBase64('51-settings-email-notifications.png')}" alt="Pannello Impostazioni Email">
+      <div class="screenshot-caption">Figura 19: Tab Notifiche Email (mittente, 5 switch, editor template con tag e test).</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="${getImageBase64('52-frontend-booking-email-triggered.png')}" alt="Prenotazione con Invio Notifica">
+      <div class="screenshot-caption">Figura 20: Prenotazione completata con trigger automatico di email e .ics.</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="${getImageBase64('53-calendar-status-updated.png')}" alt="Cambio Stato con Notifica">
+      <div class="screenshot-caption">Figura 21: Approvazione da calendario con trigger di notifica conferma al cliente.</div>
+    </div>
+  </div>
+  <div class="screenshot-card">
+    <img src="${getImageBase64('54-email-log-records.png')}" alt="Registro Email Inviate">
+    <div class="screenshot-caption">Figura 22: Tabella Registro Email (wp_fb_email_log) con tracciamento stato e allegati.</div>
+  </div>
+
+  <h2>8. Modulo 4: Servizi Extra (Add-ons) &amp; Campi Personalizzati Dinamici</h2>
+  <p>Il sistema supporta servizi extra opzionali con ricalcolo dinamico di durata e prezzo nel calendario e form flessibili con campi personalizzati (testo, textarea, menu a tendina, caselle e radio button) validati sia lato client che server.</p>
+  <div class="grid-2">
+    <div class="screenshot-card">
+      <img src="${getImageBase64('60-modules-extras-cf-active.png')}" alt="Moduli Extra e Campi Personalizzati">
+      <div class="screenshot-caption">Figura 23: Gestione Moduli con "Servizi Extra" e "Campi Personalizzati" attivi.</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="${getImageBase64('61-admin-extra-created.png')}" alt="Configurazione Servizio Extra">
+      <div class="screenshot-caption">Figura 24: Gestione Extra con prezzo addizionale (€) e incremento di durata (+min).</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="${getImageBase64('62-admin-custom-fields-created.png')}" alt="Configurazione Campi Personalizzati">
+      <div class="screenshot-caption">Figura 25: Tab Campi Personalizzati (Text, Textarea, Select, Radio, Checkbox).</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="${getImageBase64('63-frontend-extra-selected.png')}" alt="Selezione Extra Frontend">
+      <div class="screenshot-caption">Figura 26: Selezione dinamica add-on nello Step 1 con ricalcolo prezzo e slot.</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="${getImageBase64('64-frontend-cf-filled.png')}" alt="Campi Personalizzati Compilati">
+      <div class="screenshot-caption">Figura 27: Step 3 con campi dinamici renderizzati e validazione obbligatorietà.</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="${getImageBase64('65-frontend-summary-verified.png')}" alt="Riepilogo Finale Frontend">
+      <div class="screenshot-caption">Figura 28: Step 4 di conferma con dettaglio extra e risposte personalizzate.</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="${getImageBase64('66-frontend-booking-confirmed.png')}" alt="Prenotazione Confermata">
+      <div class="screenshot-caption">Figura 29: Schermata di successo prenotazione con extra e custom fields salvati.</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="${getImageBase64('67-admin-calendar-verified.png')}" alt="Dettaglio Calendario Amministratore">
+      <div class="screenshot-caption">Figura 30: Calendario admin con badge +Extras, prezzo totale e dati campi custom.</div>
+    </div>
+  </div>
+  <div class="screenshot-card">
+    <img src="${getImageBase64('68-email-log-verified.png')}" alt="Email Log con Extra e Campi Custom">
+    <div class="screenshot-caption">Figura 31: Log email con segnaposto {service_extras} e {custom_fields} sostituiti.</div>
+  </div>
+
+  <h2>9. Tabella di Confronto Completa: Free Bookly vs Bookly Pro</h2>
   <table>
     <thead>
       <tr>
@@ -250,9 +316,9 @@ const testReportHtml = `
         <td><strong>100% Gratuito &amp; Open Source (GPLv2+)</strong></td>
       </tr>
       <tr>
-        <td><strong>General Settings (5 Tab)</strong></td>
-        <td>Richiede add-on multipli per valute e orari</td>
-        <td><strong>Nativo in 5 schede complete (Azienda, Orari, Festività, Valuta)</strong></td>
+        <td><strong>General Settings (7 Tab)</strong></td>
+        <td>Richiede add-on multipli per valute, orari ed email</td>
+        <td><strong>Nativo in 7 schede complete (Azienda, Orari, Festività, Valuta, Email, Campi Custom)</strong></td>
       </tr>
       <tr>
         <td><strong>Categorie di Servizio</strong></td>
@@ -276,13 +342,28 @@ const testReportHtml = `
       </tr>
       <tr>
         <td><strong>Ferie e Giorni Liberi Staff</strong></td>
-        <td>Add-on Special Days / Holidays</td>
+        <td>Add-on Special Days / Holidays (\$39)</td>
         <td><strong>Nativo sia per azienda che per singolo collaboratore</strong></td>
       </tr>
       <tr>
         <td><strong>Tipologie di Booking Form</strong></td>
-        <td>Add-on Modern Forms a pagamento</td>
+        <td>Add-on Modern Forms a pagamento (\$49)</td>
         <td><strong>4 Form nativi: Classic, Catalog, Staff-First, Date Search</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Notifiche Email &amp; File .ics Calendario</strong></td>
+        <td>Add-on Email Notifications + Google Calendar (\$49+\$49)</td>
+        <td><strong>Nativo: 4 template responsive, generatore RFC 5545 .ics, log email</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Servizi Extra (Add-ons)</strong></td>
+        <td>Add-on Service Extras (\$39)</td>
+        <td><strong>Nativo: Prezzo, durata addizionale, slot dinamici, multi-servizio</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Campi Personalizzati (Custom Fields)</strong></td>
+        <td>Add-on Custom Fields (\$39)</td>
+        <td><strong>Nativo: Text, Textarea, Select, Radio, Checkbox, validazione obbligatorietà</strong></td>
       </tr>
       <tr>
         <td><strong>Frontend Engine</strong></td>
@@ -292,7 +373,7 @@ const testReportHtml = `
       <tr>
         <td><strong>Disinstallazione Pulita</strong></td>
         <td>Lascia spesso dati e opzioni orfane nel DB</td>
-        <td><strong><code>uninstall.php</code> certificato al 100%</strong></td>
+        <td><strong><code>uninstall.php</code> certificato al 100% per 11 tabelle SQL</strong></td>
       </tr>
     </tbody>
   </table>
@@ -442,12 +523,12 @@ const userGuideHtml = `
 
   <h3>Cosa avviene automaticamente durante l'attivazione:</h3>
   <ul>
-    <li>Vengono generate in modo trasparente 8 tabelle SQL dedicate (<code>wp_fb_categories</code>, <code>wp_fb_services</code>, <code>wp_fb_staff</code>, <code>wp_fb_staff_services</code>, <code>wp_fb_staff_schedule</code>, <code>wp_fb_holidays</code>, <code>wp_fb_customers</code>, <code>wp_fb_appointments</code>).</li>
+    <li>Vengono generate in modo trasparente 11 tabelle SQL dedicate (<code>wp_fb_categories</code>, <code>wp_fb_services</code>, <code>wp_fb_service_extras</code>, <code>wp_fb_custom_fields</code>, <code>wp_fb_appointment_extras</code>, <code>wp_fb_email_log</code>, <code>wp_fb_staff</code>, <code>wp_fb_staff_services</code>, <code>wp_fb_staff_schedule</code>, <code>wp_fb_holidays</code>, <code>wp_fb_customers</code>, <code>wp_fb_appointments</code>).</li>
     <li>Nessun dato viene inserito nelle tabelle standard <code>wp_posts</code> e <code>wp_postmeta</code>, salvaguardando la velocità del database.</li>
     <li>Viene aggiunto il menu principale <strong>Free Bookly</strong> nella bacheca.</li>
   </ul>
 
-  <h2>3. Configurazione Completa (5 Aree Chiave)</h2>
+  <h2>3. Configurazione Completa (7 Aree Chiave)</h2>
 
   <div class="step-box">
     <div class="step-title">1. Impostazioni Generali &amp; Aziendali (Free Bookly &gt; Impostazioni)</div>
@@ -457,15 +538,18 @@ const userGuideHtml = `
       <li><strong>Orari Lavorativi:</strong> Configura l'apertura settimanale predefinita dell'azienda ereditata da tutto il team.</li>
       <li><strong>Giorni Festivi:</strong> Definisci chiusure aziendali (es. Natale, Ferragosto) con ripetizione annuale automatica.</li>
       <li><strong>Pagamenti &amp; Valuta:</strong> Seleziona la valuta (EUR, USD, GBP, CHF, ecc.) e il formato grafico del prezzo.</li>
+      <li><strong>Notifiche Email:</strong> Configura mittente, 5 eventi di notifica (creazione, approvazione, cancellazione), modelli HTML e allegato di calendario RFC 5545 <code>.ics</code>.</li>
+      <li><strong>Campi Personalizzati:</strong> Aggiungi campi aggiuntivi al modulo (testo, textarea, select, radio, checkbox) con gestione obbligatorietà.</li>
     </ul>
   </div>
 
   <div class="step-box">
-    <div class="step-title">2. Categorie e Servizi Avanzati (Free Bookly &gt; Servizi)</div>
+    <div class="step-title">2. Categorie, Servizi &amp; Servizi Extra (Free Bookly &gt; Servizi)</div>
     <ul>
       <li><strong>Categorie:</strong> Crea raggruppamenti (es. Massaggi, Taglio, Consulenze) per organizzare i form.</li>
       <li><strong>Buffer Time:</strong> Imposta minuti di margine <em>Prima</em> (preparazione) e <em>Dopo</em> (sanificazione/riordino).</li>
       <li><strong>Regola ANY Provider:</strong> Scegli come assegnare la prenotazione quando l'utente sceglie "Qualsiasi collaboratore" (Casuale, Primo in elenco, Meno occupato quel giorno, Più economico).</li>
+      <li><strong>Servizi Extra (Add-ons):</strong> Aggiungi trattamenti supplementari con prezzo e incremento di durata (+min) che espandono dinamicamente lo slot orario.</li>
       <li><strong>Visibilità:</strong> Pubblico (visibile a tutti) o Privato (riservato alla gestione interna).</li>
     </ul>
   </div>
@@ -706,8 +790,14 @@ npm run build</code></pre>
 
 (async () => {
   console.log(`Avvio compilazione documentazione PDF per v${versionInfo.fullVersion} (${versionInfo.commitId})...`);
+  const profileDir = path.join(__dirname, '.tmp-pdf-profile');
+  if (fs.existsSync(profileDir)) {
+    try { fs.rmSync(profileDir, { recursive: true, force: true }); } catch (e) {}
+  }
+
   const browser = await puppeteer.launch({
     headless: 'new',
+    userDataDir: profileDir,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
@@ -757,6 +847,7 @@ npm run build</code></pre>
   console.log('-> compilation-guide.pdf salvato in docs/ e artifacts!');
 
   await browser.close();
+  try { fs.rmSync(profileDir, { recursive: true, force: true }); } catch (e) {}
   console.log('Tutti i PDF generati con successo!');
 })().catch(err => {
   console.error('Errore generazione PDF:', err);

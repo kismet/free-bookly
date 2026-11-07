@@ -42,6 +42,12 @@ $pre_staff_id    = isset( $atts['staff_id'] ) ? sanitize_text_field( $atts['staf
 			<div id="fb-service-info" class="fb-info-box" style="display:none;"></div>
 		</div>
 
+		<!-- Container Servizi Extra -->
+		<div id="fb-extras-container" class="fb-field-block" style="display:none; margin-top: 16px;">
+			<label><strong><?php esc_html_e( 'Servizi Extra & Add-ons Opzionali', 'free-bookly' ); ?></strong></label>
+			<div id="fb-extras-list" style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;"></div>
+		</div>
+
 		<div class="fb-field-block" style="margin-top: 16px;">
 			<label for="fb-staff-select"><strong><?php esc_html_e( 'Scegli il Collaboratore (Opzionale)', 'free-bookly' ); ?></strong></label>
 			<select id="fb-staff-select">
@@ -88,6 +94,9 @@ $pre_staff_id    = isset( $atts['staff_id'] ) ? sanitize_text_field( $atts['staf
 		<div class="fb-field-block" style="margin-bottom: 12px;">
 			<input type="tel" id="fb-user-phone" placeholder="<?php esc_attr_e( 'Numero di Telefono', 'free-bookly' ); ?>" />
 		</div>
+
+		<!-- Container Campi Personalizzati Dinamici -->
+		<div id="fb-custom-fields-container" style="margin-top: 16px;"></div>
 
 		<div style="margin-top: 24px; display: flex; gap: 12px;">
 			<button class="fb-btn fb-btn-secondary fb-prev-step" data-target="2"><?php esc_html_e( 'Indietro', 'free-bookly' ); ?></button>

@@ -123,10 +123,44 @@ $message = isset( $_GET['message'] ) ? sanitize_text_field( $_GET['message'] ) :
 								<strong><?php echo esc_html( $app['customer_name'] ); ?></strong><br>
 								<small><a href="mailto:<?php echo esc_attr( $app['customer_email'] ); ?>"><?php echo esc_html( $app['customer_email'] ); ?></a></small><br>
 								<small><?php echo esc_html( $app['customer_phone'] ); ?></small>
+								<?php
+								if ( ! empty( $app['custom_fields'] ) ) {
+									$cf_items = json_decode( $app['custom_fields'], true );
+									if ( is_array( $cf_items ) && ! empty( $cf_items ) ) {
+										echo '<div style="margin-top: 6px; padding: 4px 6px; background: #f8fafc; border-left: 2px solid #0284c7; border-radius: 2px; font-size: 11px;">';
+										foreach ( $cf_items as $cf_it ) {
+											if ( is_array( $cf_it ) && isset( $cf_it['label'] ) && isset( $cf_it['value'] ) ) {
+												echo '<div><strong>' . esc_html( $cf_it['label'] ) . ':</strong> ' . esc_html( $cf_it['value'] ) . '</div>';
+											}
+										}
+										echo '</div>';
+									}
+								}
+								?>
 							</td>
 							<td>
 								<strong><?php echo esc_html( $app['service_title'] ? $app['service_title'] : 'Nessuno' ); ?></strong><br>
-								<small>€ <?php echo esc_html( number_format( (float) $app['service_price'], 2, ',', '.' ) ); ?></small>
+								<small>Base: € <?php echo esc_html( number_format( (float) $app['service_price'], 2, ',', '.' ) ); ?></small>
+								<?php
+								$app_extras = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}fb_appointment_extras WHERE appointment_id = %d", $app['id'] ), ARRAY_A );
+								if ( ! empty( $app_extras ) ) :
+									$extras_sum = (float) $app['extras_price'];
+									$total_price = (float) $app['service_price'] + $extras_sum;
+								?>
+									<div style="margin-top: 4px;">
+										<span class="fb-badge" style="background: #e0f2fe; color: #0369a1; font-size: 10px;">
+											+ Extras: € <?php echo esc_html( number_format( $extras_sum, 2, ',', '.' ) ); ?>
+										</span>
+										<div style="font-size: 11px; color: #047857; font-weight: 600; margin-top: 2px;">
+											Tot: € <?php echo esc_html( number_format( $total_price, 2, ',', '.' ) ); ?>
+										</div>
+										<ul style="margin: 2px 0 0 12px; font-size: 10px; color: #64748b; list-style-type: disc;">
+											<?php foreach ( $app_extras as $ex_row ) : ?>
+												<li><?php echo esc_html( $ex_row['title'] ); ?> (+€ <?php echo esc_html( number_format( (float) $ex_row['price'], 2, ',', '.' ) ); ?>)</li>
+											<?php endforeach; ?>
+										</ul>
+									</div>
+								<?php endif; ?>
 							</td>
 							<td>
 								<span class="fb-badge fb-badge-secondary"><?php echo esc_html( $app['staff_name'] ? $app['staff_name'] : 'Qualsiasi' ); ?></span>
